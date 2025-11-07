@@ -1,64 +1,133 @@
-<div class="container">
-    <div class="profile-title">
-        <h2>{{user.username}}'s Profile</h2>
-    </div>
-    <img src={{user.avatar}} alt={{user.avatar}} class="avatar">
+<div class="profile-container">
+  <!-- Background Decoration -->
+  <div class="background-decoration"></div>
+  
+  <!-- Main Profile Card -->
+  <div class="profile-card">
     
-    <div class="user-profile">
-     <table class="table-info">
-   <tr>
-    <td>Username:</td>
-    <td>{{user.username}}</td>
-   </tr>
-    <tr>
-        <td>
-        Gender:
-        </td>
-        <td>
-            {{user.gender}}
-        </td>
-    </tr>
-    <tr>
-        <td>
-        Email:
-        </td>
-     <td>
-        {{user.email}}
-    </tr>
-    <tr>
-        <td>
-            Phone Number:
-        </td>
-        <td>
-            {{user.phone}}
-        </td>
-    </tr> 
-    <tr>
-        <td>
-        Created Date:
-        </td>
-         <td>
-            {{user.created_date}}
-         </td>
-    </tr>
-    <tr>
-        <td>
-            Last Active:
-        </td>
-        <td>
-            {{user.last_action}}
-        </td>
-    </tr>
-    <tr>
-        <td>
-        Role:
-        </td>
-        <td>
-            {{role}}
-        </td>
-    </tr>
-     </table>
-
-    <button class="back_btn" (click)="backHomePage()">Back To HomePage</button>
+    <!-- Header Section with Avatar -->
+    <div class="profile-header">
+      <div class="avatar-container">
+        <img [src]="user.avatar" [alt]="user.username" class="avatar">
+        <div class="avatar-ring"></div>
+        <div class="status-badge" [class.online]="isOnline">
+          <span class="status-dot"></span>
+        </div>
+      </div>
+      
+      <div class="profile-title">
+        <h1 class="username">{{user.username}}</h1>
+        <span class="role-badge" [class.admin]="user.role_id === 1">
+          <svg class="role-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+          </svg>
+          {{role}}
+        </span>
+      </div>
     </div>
+
+    <!-- Stats Section -->
+    <div class="stats-section">
+      <div class="stat-card">
+        <div class="stat-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>
+          </svg>
+        </div>
+        <div class="stat-content">
+          <span class="stat-label">Member Since</span>
+          <span class="stat-value">{{formatDate(user.created_date)}}</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>
+          </svg>
+        </div>
+        <div class="stat-content">
+          <span class="stat-label">Last Active</span>
+          <span class="stat-value">{{formatDate(user.last_action)}}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Information Section -->
+    <div class="info-section">
+      <h2 class="section-title">
+        <svg class="section-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+        </svg>
+        Personal Information
+      </h2>
+      
+      <div class="info-grid">
+        <div class="info-item">
+          <div class="info-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+            </svg>
+          </div>
+          <div class="info-content">
+            <span class="info-label">Username</span>
+            <span class="info-value">{{user.username}}</span>
+          </div>
+        </div>
+
+        <div class="info-item">
+          <div class="info-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm9 7h-6v13h-2v-6h-2v6H9V9H3V7h18v2z"/>
+            </svg>
+          </div>
+          <div class="info-content">
+            <span class="info-label">Gender</span>
+            <span class="info-value">{{user.gender}}</span>
+          </div>
+        </div>
+
+        <div class="info-item">
+          <div class="info-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+            </svg>
+          </div>
+          <div class="info-content">
+            <span class="info-label">Email</span>
+            <span class="info-value">{{user.email}}</span>
+          </div>
+        </div>
+
+        <div class="info-item">
+          <div class="info-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+            </svg>
+          </div>
+          <div class="info-content">
+            <span class="info-label">Phone Number</span>
+            <span class="info-value">{{user.phone || 'Not provided'}}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-section">
+      <button class="btn btn-secondary" (click)="backHomePage()">
+        <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+        </svg>
+        Back to Home
+      </button>
+      
+      <button class="btn btn-primary" *ngIf="isOwnProfile" (click)="editProfile()">
+        <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+        </svg>
+        Edit Profile
+      </button>
+    </div>
+  </div>
 </div>

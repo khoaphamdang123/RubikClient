@@ -1,30 +1,72 @@
 <header class="header">
-    <div class="logo">
-      <!-- Replace 'logo.png' with the path to your logo -->
-     <a href="/about"> <img src="assets/images/pngegg.png" alt="Logo"></a>
+  <div class="logo">
+    <a href="/about" aria-label="Home">
+      <img src="assets/images/pngegg.png" alt="Rubik's Cube Logo">
+    </a>
+  </div>
+  
+  <!-- Mobile menu button -->
+  <button 
+    class="mobile-menu-btn"
+    (click)="toggleMobileMenu()"
+    [attr.aria-expanded]="isMobileMenuOpen"
+    aria-label="Toggle navigation menu"
+    aria-controls="mobile-menu">
+    <span class="hamburger-line" [class.active]="isMobileMenuOpen"></span>
+    <span class="hamburger-line" [class.active]="isMobileMenuOpen"></span>
+    <span class="hamburger-line" [class.active]="isMobileMenuOpen"></span>
+  </button>
+
+  <nav class="nav" [class.mobile-open]="isMobileMenuOpen" id="mobile-menu">
+    <ul>
+      <li><a href="/products" (click)="closeMobileMenu()">PRODUCTS</a></li>
+      <li><a href="/about" (click)="closeMobileMenu()">ABOUT</a></li>
+      <li><a href="/solve" (click)="closeMobileMenu()">SOLVE-CUBE</a></li>
+      <li>
+        <a href="https://www.spinmaster.com/en-US/customer-support/" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           (click)="closeMobileMenu()">
+          SUPPORTS
+        </a>
+      </li>
+    </ul>
+  </nav>
+  
+  <div class="dropdown">
+    <button 
+      #dropdownButton
+      class="dropbtn"
+      (click)="toggleDropdown()"
+      [attr.aria-expanded]="isDropdownOpen"
+      aria-label="User menu"
+      aria-haspopup="true">
+      <img class="avatar" 
+           src="https://gw.alipayobjects.com/zos/rmsportal/BiazfanxmamNRoxxVxka.png" 
+           alt="User avatar">
+    </button>
+    <div 
+      #dropdownContent
+      class="dropdown-content" 
+      [class.show]="isDropdownOpen"
+      [style.top]="dropdownPosition.top"
+      [style.right]="dropdownPosition.right">
+      <a href="" 
+         onclick="return false;" 
+         (click)="navigateProfile(); closeDropdown()"
+         role="menuitem">Profile</a>
+      @if(user && user.role_id==1) {
+        <a href="/add-product" (click)="closeDropdown()" role="menuitem">Add Product</a>
+        <a href="/add-account" (click)="closeDropdown()" role="menuitem">Add Account</a>
+      }  
+      <a href="" 
+         onclick="return false;" 
+         (click)="navigateDevices(); closeDropdown()"
+         role="menuitem">Devices</a>
+      <a href="" 
+         onclick="return false;" 
+         (click)="signOut(); closeDropdown()"
+         role="menuitem">Sign Out</a>
     </div>
-    <nav class="nav">
-      <ul>
-        <li><a href="/products">PRODUCTS</a></li>
-        <li><a href="/about">ABOUT</a></li>
-        <li><a href="/solve">SOLVE-CUBE</a></li>
-        <li><a href ="https://www.spinmaster.com/en-US/customer-support/" target="_blank">SUPPORTS</a></li>
-      </ul>
-    </nav>
-    <div class="dropdown">
-        <button class="dropbtn">
-          <img class="avatar" src="https://gw.alipayobjects.com/zos/rmsportal/BiazfanxmamNRoxxVxka.png" alt="Avatar">
-        </button>
-        <div class="dropdown-content">
-          <a href="" onclick="return false;" (click)="navigateProfile()">Profile</a>
-        @if(user.role_id==1)
-        {
-          <a href="/add-product">Add Product</a>
-          <a href="/add-account">Add Account</a>
-        }  
-          <a href="" onclick="return false;" (click)="navigateDevices()">Devices</a>
-          <a href="" onclick="return false;" (click)="signOut()">Sign Out</a>
-          <!-- Add more dropdown options as needed -->
-        </div>
-      </div>
-  </header>
+  </div>
+</header>

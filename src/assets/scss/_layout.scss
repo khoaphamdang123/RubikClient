@@ -1,14 +1,21 @@
 .app-header {
-    @apply bg-white shadow py-5 fixed top-0 left-0 w-full z-20;
-  }
-  
-  .app-wrapper {
-    height: calc(100vh - $header-height);
-    top: $header-height;
-    @apply relative overflow-y-auto;
-  }
-  
-  .app-slide-panel {
-    height: calc(100vh - $header-height);
-    @apply relative overflow-y-auto;
-  }
+  @apply bg-white shadow py-5 fixed top-0 left-0 w-full z-20;
+}
+
+.app-wrapper {
+  min-height: calc(100vh - $header-height);
+  padding-top: $header-height;
+  @apply relative overflow-y-auto;
+}
+
+.app-slide-panel {
+  min-height: calc(100vh - $header-height);
+  @apply relative overflow-y-auto;
+}
+
+// Responsive padding for content
+.content-wrapper {
+  @apply px-4 py-6;
+  @apply sm:px-6 sm:py-8;
+  @apply lg:px-8 lg:py-10;
+}

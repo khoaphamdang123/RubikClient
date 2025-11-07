@@ -30,12 +30,18 @@ export class LoginComponent implements OnInit,OnDestroy {
       is_valid_capcha:boolean=true;
       show_form:boolean = false;
       @ViewChild('capchaInput') capchaInput!:ElementRef;
+      
+      // Rubik's cube colors
+      cubeColors: string[] = ['#00d800', '#0051ff', '#ffffff', '#ffe600', '#ff8c00', '#ff0000'];
 
      constructor(private fb:FormBuilder,private popupService:PopupService,private handleService:HandleService,private router:Router,private sesService:SesService)
       {
       }
        ngOnInit(): void {
         this.capcha=this.generateCapchaForm();
+        
+        // Initialize random cube colors
+        this.initializeCubeColors();
         
         this.loginForm = this.fb.group(
           {
@@ -99,6 +105,41 @@ export class LoginComponent implements OnInit,OnDestroy {
       refreshCapcha():void
       {
         this.capcha=this.generateCapchaForm();
+      }
+
+      // Initialize solid colors for cube faces (like a solved Rubik's cube)
+      // Each cube gets vivid, distinct colors for all 6 faces
+      initializeCubeColors(): void {
+        setTimeout(() => {
+          const cubes = document.querySelectorAll('.rubiks-cube');
+          
+          cubes.forEach((cube) => {
+            const faces = cube.querySelectorAll('.rubiks-face');
+            
+            // Official Rubik's Cube colors (Pantone standards)
+            // The order MUST match HTML order: front, back, top, bottom, left, right
+            const faceColors = [
+              '#0051BA',  // Face 0 (.front) - Blue (Pantone 293C)
+              '#C41E3A',  // Face 1 (.back) - Red (Pantone 186C)  
+              '#FFFFFF',  // Face 2 (.top) - White
+              '#FFD500',  // Face 3 (.bottom) - Yellow (Pantone 012C)
+              '#009E60',  // Face 4 (.left) - Green (Pantone 347C)
+              '#FF5800'   // Face 5 (.right) - Orange (Pantone 021C)
+            ];
+            
+            faces.forEach((face, faceIndex) => {
+              const color = faceColors[faceIndex];
+              const blocks = face.querySelectorAll('.block');
+              
+              // Set all 9 blocks on this face to the same color
+              blocks.forEach((block: Element) => {
+                (block as HTMLElement).style.backgroundColor = color;
+                // Also add important flag to ensure it overrides any other styles
+                (block as HTMLElement).style.setProperty('background-color', color, 'important');
+              });
+            });
+          });
+        }, 100); // Small delay to ensure DOM is ready
       }
 
       async onSubmitForm()

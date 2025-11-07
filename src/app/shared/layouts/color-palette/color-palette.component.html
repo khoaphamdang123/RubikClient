@@ -1,12 +1,54 @@
-<div class="palette-container" [style.background-color]="backgroundColor">
-   
-    @for(row of rows;track $index)
-    {
-        <div class="row">
-           @for(color of row;track $index)
-           {
-               <button class="color" [style.background-color]="color" (click)="changeBackgroundColor(color)"></button>
-           }
+<div class="color-palette">
+  <!-- Current Color Title -->
+  <div class="color-palette-header">
+    <h4 class="current-color-title">
+      Current Color: 
+      <span class="current-color-value" [style.color]="backgroundColor !== 'transparent' ? backgroundColor : 'rgba(255, 255, 255, 0.5)'">
+        {{ getColorName(backgroundColor) }}
+      </span>
+    </h4>
+  </div>
+
+  <!-- Selected Color Display -->
+  <div class="selected-color-display">
+    <div class="selected-color-preview" [style.background-color]="backgroundColor">
+      @if (backgroundColor !== 'transparent') {
+        <div class="checkmark">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
         </div>
+      }
+    </div>
+    <div class="selected-color-info">
+      <span class="selected-color-label">Preview</span>
+      <span class="selected-color-name">{{ getColorName(backgroundColor) }}</span>
+    </div>
+  </div>
+
+  <!-- Color Grid -->
+  <div class="color-grid">
+    @for(colorItem of colorOptions; track colorItem.value) {
+      <button 
+        class="color-button"
+        [class.active]="backgroundColor === colorItem.value"
+        [class.disabled]="isColorDisabled(colorItem.value)"
+        [style.--color]="colorItem.value"
+        (click)="changeBackgroundColor(colorItem.value)"
+        [disabled]="isColorDisabled(colorItem.value)"
+        [attr.title]="colorItem.name"
+      >
+        <div class="color-swatch" [style.background-color]="colorItem.value">
+          @if (backgroundColor === colorItem.value) {
+            <div class="active-indicator">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            </div>
+          }
+        </div>
+        <span class="color-name">{{ colorItem.name }}</span>
+      </button>
     }
+  </div>
 </div>

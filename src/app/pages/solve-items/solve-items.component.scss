@@ -1,65 +1,335 @@
-.item {
-    border-radius: 10px;
-    border: 1px solid #ccc;
-    padding: 10px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
-    width: fit-content;
-    box-sizing: border-box;
-  }
-  
-  .item img {
-    width:250px; /* Adjust the image width as needed */
-    height: auto; /* Maintain aspect ratio */
-    margin-right: 10px;
-  }
-  
-  .item .info 
-  {
-    flex: 1;
-  }
-  
+// ============================================
+// SOLVE ITEMS CARD - MODERN DESIGN
+// ============================================
 
+// Color Variables
+$primary-blue: #0053a1;
+$primary-dark: #003d7a;
+$text-dark: #1f2937;
+$text-gray: #6b7280;
+$bg-white: #ffffff;
+$border-color: #e5e7eb;
+$success-green: #10b981;
+
+// Cube Card
+.cube-card {
+  background: $bg-white;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid $border-color;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+
+  &:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 28px rgba(0, 83, 161, 0.15);
+    border-color: $primary-blue;
+
+    .cube-image {
+      transform: scale(1.1);
+    }
+
+    .cube-overlay {
+      opacity: 1;
+    }
+
+    .solve-btn {
+      background: $primary-dark;
+      transform: translateX(4px);
+
+      .btn-arrow {
+        transform: translateX(4px);
+      }
+    }
+  }
+
+  @media (max-width: 640px) {
+    &:hover {
+      transform: translateY(-4px);
+    }
+  }
+}
+
+// Image Container
+.cube-image-container {
+  position: relative;
+  width: 100%;
+  height: 280px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #f9fafb 0%, #e5e7eb 100%);
+
+  @media (max-width: 768px) {
+    height: 240px;
+  }
+
+  @media (max-width: 640px) {
+    height: 220px;
+  }
+}
+
+.cube-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+// Placeholder Image
+.placeholder-image {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   
- .detail-btn
-  {
-    gap: 10px;
-    padding: 0.5rem 3rem;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-family: Rubik;
-    font-size: 1.2rem;
-    font-weight: 800;
-    line-height: 1.2;
-    letter-spacing: 0.8px;
-    width: 150px;
-    height: 25px;
-    border: 3px solid rgb(255, 255, 255);
-    border-radius: 10px;
-    color: rgb(255, 255, 255);
-    transition: all 250ms ease 0s;
-    text-decoration: none;
-    background-color:#0053a1;
-    box-shadow: (0, 0, 0, 0.3) 0px 3px 7px 2px;
-    cursor: pointer;
+  svg {
+    width: 120px;
+    height: 120px;
+    stroke: rgba(255, 255, 255, 0.8);
+    stroke-width: 1.5;
+    
+    @media (max-width: 640px) {
+      width: 80px;
+      height: 80px;
+    }
   }
-  
-  .title{
-    width: 250px;
-    height: auto;
+}
+
+// Overlay
+.cube-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 83, 161, 0.7) 0%,
+    rgba(0, 61, 122, 0.8) 100%
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.overlay-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 50px;
+  border: 2px solid white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  animation: bounceIn 0.5s ease-out;
+
+  span {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: $success-green;
+    letter-spacing: 0.5px;
   }
-  
-  .title-font
-  {
-    font-weight: bolder;
+
+  @media (max-width: 640px) {
+    padding: 0.625rem 1.25rem;
+
+    span {
+      font-size: 0.8rem;
+    }
   }
-  .detail-btn:hover
-  {
-    text-decoration: none;
-    background-color: #0f0f0e;
-    color: rgb(255, 255, 255);
+}
+
+.badge-icon {
+  width: 20px;
+  height: 20px;
+  stroke: $success-green;
+  stroke-width: 2.5;
+
+  @media (max-width: 640px) {
+    width: 18px;
+    height: 18px;
   }
+}
+
+// Card Content
+.cube-content {
+  padding: 1.5rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+
+  @media (max-width: 640px) {
+    padding: 1.25rem;
+  }
+}
+
+.clickable-title {
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+
+  &:hover .cube-title {
+    color: $primary-blue;
+  }
+}
+
+.cube-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: $text-dark;
+  margin: 0 0 1rem 0;
+  line-height: 1.4;
+  flex: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color 0.2s ease;
+
+  @media (max-width: 768px) {
+    font-size: 1.1rem;
+  }
+
+  @media (max-width: 640px) {
+    font-size: 1rem;
+  }
+}
+
+// Card Footer
+.cube-footer {
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid $border-color;
+}
+
+// Solve Button
+.solve-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1.5rem;
+  background: $primary-blue;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 83, 161, 0.2);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.2),
+      transparent
+    );
+    transition: left 0.5s ease;
+  }
+
+  &:hover::before {
+    left: 100%;
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  span {
+    position: relative;
+    z-index: 1;
+  }
+
+  @media (max-width: 640px) {
+    padding: 0.75rem 1.25rem;
+    font-size: 0.95rem;
+    gap: 0.5rem;
+  }
+}
+
+.btn-icon {
+  width: 20px;
+  height: 20px;
+  stroke: white;
+  transition: transform 0.3s ease;
+
+  @media (max-width: 640px) {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.btn-arrow {
+  width: 18px;
+  height: 18px;
+  stroke: white;
+  transition: transform 0.3s ease;
+
+  @media (max-width: 640px) {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.solve-btn:hover .btn-icon {
+  transform: rotate(360deg);
+}
+
+// Animations
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+// Accessibility
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+// Focus States for Accessibility
+.solve-btn:focus-visible {
+  outline: 3px solid $primary-blue;
+  outline-offset: 2px;
+}
+
+.cube-card:focus-within {
+  outline: 2px solid $primary-blue;
+  outline-offset: 2px;
+}

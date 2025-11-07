@@ -16,7 +16,7 @@ import { ImageDetectComponent } from '../image-detect/image-detect.component';
   styleUrl: './rubik-solve.component.scss',
   providers:[PopupService,HandleService]
 })
-export class RubikSolveComponent implements OnInit {
+export class RubikSolveComponent implements OnInit, OnDestroy {
   isShowThreeD:boolean=true;
   rubikName:string='';
   threeDColor:string = '#3d81f6';
@@ -30,6 +30,14 @@ export class RubikSolveComponent implements OnInit {
   rotationX:number=0;
   rotationY:number=0;
   curr_horizontal_idx:number=0;
+  
+  // Smooth rotation properties
+  velocityX:number=0;
+  velocityY:number=0;
+  lastTimestamp:number=0;
+  animationFrameId:number|null=null;
+  isDragging:boolean=false;
+  isButtonRotating:boolean=false;
   color_face:string[]=['green','red','blue','orange'];
   is_upside_down:boolean=false;
   curr_left_img:string='assets/images/curved-left-arrow.png';
@@ -129,13 +137,16 @@ checkFrequencyColor(color:string)
   var is_disable=this.countAllFrequency(color);
   let idx=this.getIndexColor(color);
 
-  if(is_disable)
+  if(idx !== -1)
   {
-    this.color_disable[idx]='true';
-  }
-  else
-  {
-    this.color_disable[idx]='false';
+    if(is_disable)
+    {
+      this.color_disable[idx]='true';
+    }
+    else
+    {
+      this.color_disable[idx]='false';
+    }
   }
 }
 
@@ -174,12 +185,37 @@ return '';
 
 countAllFrequency(color:string):boolean
 { 
-  let num_freq=this.rubik_block_color.filter(c=>c==color).length;
-  if(num_freq>=9)
+  if(this.rubikName=="Rubik's 3x3")
   {
-    return true;
+    let num_freq=this.rubik_block_color.filter(c=>c==color).length;
+    if(num_freq>=9)
+    {
+      return true;
+    }
+  }
+  else if(this.rubikName=="Rubik's Apprentice 2x2")
+  {
+    let num_freq=this.rubik_2x2_block_color.filter(c=>c==color).length;
+    if(num_freq>=4)
+    {
+      return true;
+    }
   }
   return false;
+}
+
+// Count how many times a color appears in the cube (for validation)
+countColorOccurrences(color:string):number
+{
+  if(this.rubikName=="Rubik's 3x3")
+  {
+    return this.rubik_block_color.filter(c=>c==color).length;
+  }
+  else if(this.rubikName=="Rubik's Apprentice 2x2")
+  {
+    return this.rubik_2x2_block_color.filter(c=>c==color).length;
+  }
+  return 0;
 }
 
 showValue()
@@ -202,13 +238,32 @@ switchFlatView()
 startRotate(event:MouseEvent)
 { 
   this.isRotating=true;
+  this.isDragging=true;
+  this.isButtonRotating=false; // Disable CSS transition during drag
   this.startPosX=event.clientX;
   this.startPostY=event.clientY;
+  this.lastTimestamp=Date.now();
+  
+  // Stop any ongoing momentum animation
+  if(this.animationFrameId){
+    cancelAnimationFrame(this.animationFrameId);
+    this.animationFrameId=null;
+  }
+  
+  // Reset velocity
+  this.velocityX=0;
+  this.velocityY=0;
 }
 
 stopRotate()
 { 
   this.isRotating=false;
+  this.isDragging=false;
+  
+  // Start momentum animation if there's velocity
+  if(Math.abs(this.velocityX)>0.5 || Math.abs(this.velocityY)>0.5){
+    this.applyMomentum();
+  }
 }
 
 
@@ -217,28 +272,134 @@ rotateCube(event:MouseEvent)
 {
   if(this.isRotating)
   { 
-    // const deltaX=event.clientX-this.startPosX;
-    // const deltaY=event.clientY-this.startPostY;
-    // const rotateX=this.startRotateX+(deltaY/5);
-    // const rotateY=this.startPostY+(deltaX/5);
-    // this.startRotateX=this.startPosX;
-    // this.startRotateY=this.startPostY;
-    this.startRotateX=event.clientX;
-    this.startRotateY=event.clientY;
-    const deltaX=this.startRotateX-this.startPosX;
-    const deltaY=this.startRotateY-this.startPostY;
-    this.rotationX+=deltaY*0.8;
-    this.rotationY+=deltaX*0.8;
-    this.startPosX=this.startRotateX;
-    this.startPostY=this.startRotateY;
-    console.log('X'+this.rotationX);
-    console.log('Y'+this.rotationY);
-    this.cubeRotateStyle=`rotateX(${this.rotationX}deg) rotateY(${this.rotationY}deg)`;
+    const currentTime=Date.now();
+    const timeDelta=currentTime-this.lastTimestamp;
+    
+    // Calculate delta positions
+    const deltaX=event.clientX-this.startPosX;
+    const deltaY=event.clientY-this.startPostY;
+    
+    // Calculate velocity (degrees per millisecond)
+    if(timeDelta>0){
+      this.velocityX=(-deltaY*0.5)/timeDelta*16; // Normalize to 60fps (negated for natural movement)
+      this.velocityY=(deltaX*0.5)/timeDelta*16;
+    }
+    
+    // Apply rotation with smoother sensitivity (negate deltaY for natural drag behavior)
+    this.rotationX+=-deltaY*0.5;
+    this.rotationY+=deltaX*0.5;
+    
+    // Update positions
+    this.startPosX=event.clientX;
+    this.startPostY=event.clientY;
+    this.lastTimestamp=currentTime;
+    
+    // Update cube style without transition for smooth dragging
+    this.updateCubeTransform();
+  }
+}
+
+// Apply momentum after drag ends
+applyMomentum(){
+  const friction=0.95; // Friction coefficient
+  
+  const animate=()=>{
+    // Apply velocity to rotation
+    this.rotationX+=this.velocityX;
+    this.rotationY+=this.velocityY;
+    
+    // Apply friction
+    this.velocityX*=friction;
+    this.velocityY*=friction;
+    
+    // Update transform
+    this.updateCubeTransform();
+    
+    // Continue animation if velocity is significant
+    if(Math.abs(this.velocityX)>0.1 || Math.abs(this.velocityY)>0.1){
+      this.animationFrameId=requestAnimationFrame(animate);
+    }else{
+      this.velocityX=0;
+      this.velocityY=0;
+      this.animationFrameId=null;
+    }
+  };
+  
+  this.animationFrameId=requestAnimationFrame(animate);
+}
+
+// Update cube transform
+updateCubeTransform(){
+  this.cubeRotateStyle=`rotateX(${this.rotationX}deg) rotateY(${this.rotationY}deg)`;
+}
+
+// Touch event handlers for mobile
+@HostListener('touchstart',['$event'])
+handleTouchStart(event:TouchEvent){
+  if(event.target && (event.target as HTMLElement).closest('.rubik-view')){
+    event.preventDefault();
+    const touch=event.touches[0];
+    this.isRotating=true;
+    this.isDragging=true;
+    this.startPosX=touch.clientX;
+    this.startPostY=touch.clientY;
+    this.lastTimestamp=Date.now();
+    
+    if(this.animationFrameId){
+      cancelAnimationFrame(this.animationFrameId);
+      this.animationFrameId=null;
+    }
+    
+    this.velocityX=0;
+    this.velocityY=0;
+  }
+}
+
+@HostListener('touchmove',['$event'])
+handleTouchMove(event:TouchEvent){
+  if(this.isRotating && event.touches.length===1){
+    event.preventDefault();
+    const touch=event.touches[0];
+    const currentTime=Date.now();
+    const timeDelta=currentTime-this.lastTimestamp;
+    
+    const deltaX=touch.clientX-this.startPosX;
+    const deltaY=touch.clientY-this.startPostY;
+    
+    if(timeDelta>0){
+      this.velocityX=(-deltaY*0.5)/timeDelta*16; // Negated for natural movement
+      this.velocityY=(deltaX*0.5)/timeDelta*16;
+    }
+    
+    this.rotationX+=-deltaY*0.5; // Negate deltaY for natural drag behavior
+    this.rotationY+=deltaX*0.5;
+    
+    this.startPosX=touch.clientX;
+    this.startPostY=touch.clientY;
+    this.lastTimestamp=currentTime;
+    
+    this.updateCubeTransform();
+  }
+}
+
+@HostListener('touchend',['$event'])
+handleTouchEnd(event:TouchEvent){
+  if(this.isRotating){
+    event.preventDefault();
+    this.isRotating=false;
+    this.isDragging=false;
+    
+    if(Math.abs(this.velocityX)>0.5 || Math.abs(this.velocityY)>0.5){
+      this.applyMomentum();
+    }
   }
 }
 
 rotateRightButton()
 {
+  // Enable CSS transition for smooth button rotation
+  this.isButtonRotating=true;
+  
   this.curr_horizontal_idx-=1;
   if(this.curr_horizontal_idx<0)
   {
@@ -273,6 +434,9 @@ if(this.curr_horizontal_idx==0)
 
 rotateLeftButton()
 {
+// Enable CSS transition for smooth button rotation
+this.isButtonRotating=true;
+
 this.curr_horizontal_idx+=1;
 if(this.curr_horizontal_idx>3)
 {
@@ -306,7 +470,11 @@ if(this.curr_horizontal_idx==0)
 }
 
 rotateUpsideDown()
-{  this.is_upside_down=!this.is_upside_down
+{  
+  // Enable CSS transition for smooth button rotation
+  this.isButtonRotating=true;
+  
+  this.is_upside_down=!this.is_upside_down
  if(this.is_upside_down)
  {
   switch(this.curr_horizontal_idx)
@@ -355,31 +523,66 @@ changeBtnColor(event:string)
 
 changeBlockColor(event:MouseEvent)
 {
-
  const btn=event.currentTarget as HTMLButtonElement;
  const id =btn.dataset['field'] as string;
  var num_id=parseInt(id);
-//  var current_color=this.rubik_block_color[num_id-1];
-//  var curr_idx=this.getIndexColor(current_color);
-//  var idx_new_color=this.getIndexColor(this.btn_color);
-//  if(this.color_disable[idx_new_color]=='true')
-//  {
-//   this.popupService.AlertErrorDialog('You have used this color more than 9 times','Pick too much');
-//   return;
-//  }
-//  if(this.color_disable[curr_idx]=='true' && idx_new_color!=curr_idx)
-//  {
-//   this.color_disable[curr_idx]='false';
-//  }
-if(this.rubikName=="Rubik's 3x3")
-{
- this.rubik_block_color[num_id-1]=this.btn_color;
-}
-else if(this.rubikName=="Rubik’s Apprentice 2x2")
-{
-  this.rubik_2x2_block_color[num_id-1]=this.btn_color;
-}
-//  this.checkFrequencyColor(this.btn_color);
+ 
+ // Get current and new color info
+ let current_color:string;
+ let max_allowed:number;
+ 
+ if(this.rubikName=="Rubik's 3x3")
+ {
+   current_color = this.rubik_block_color[num_id-1];
+   max_allowed = 9; // 9 blocks per face on 3x3
+ }
+ else if(this.rubikName=="Rubik's Apprentice 2x2")
+ {
+   current_color = this.rubik_2x2_block_color[num_id-1];
+   max_allowed = 4; // 4 blocks per face on 2x2
+ }
+ else
+ {
+   return;
+ }
+ 
+ // If trying to apply the same color, just ignore
+ if(current_color === this.btn_color)
+ {
+   return;
+ }
+ 
+ // Check if the new color would exceed the limit
+ const newColorCount = this.countColorOccurrences(this.btn_color);
+ 
+ if(newColorCount >= max_allowed)
+ {
+   const colorName = this.btn_color.charAt(0).toUpperCase() + this.btn_color.slice(1);
+   this.popupService.AlertErrorDialog(
+     `Each color can only appear ${max_allowed} times (one complete face). You already have ${newColorCount} blocks with ${colorName}.`,
+     'Color Limit Exceeded'
+   );
+   return;
+ }
+ 
+ // Apply the new color
+ if(this.rubikName=="Rubik's 3x3")
+ {
+   this.rubik_block_color[num_id-1]=this.btn_color;
+ }
+ else if(this.rubikName=="Rubik's Apprentice 2x2")
+ {
+   this.rubik_2x2_block_color[num_id-1]=this.btn_color;
+ }
+ 
+ // Update color availability status
+ this.checkFrequencyColor(this.btn_color);
+ 
+ // Also check the previous color to see if it should be re-enabled
+ if(current_color && current_color !== 'grey' && current_color !== '')
+ {
+   this.checkFrequencyColor(current_color);
+ }
 }
 
 blankRubikBlock()
@@ -1205,5 +1408,13 @@ async switchReverseDown()
 
 
   // var transmit=await this.handleService.transmitMqtt("gud sier","test");
+  }
+
+  ngOnDestroy(){
+    // Clean up animation frame when component is destroyed
+    if(this.animationFrameId){
+      cancelAnimationFrame(this.animationFrameId);
+      this.animationFrameId=null;
+    }
   }
 }

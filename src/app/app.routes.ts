@@ -15,10 +15,12 @@ import { ProfileComponent } from './pages/profile/profile.component';
 import { DevicesComponent } from './pages/devices/devices.component';
 import { ImageDetectComponent } from './pages/image-detect/image-detect.component';
 export const routes: Routes = [
+    {path:'',redirectTo:'/products',pathMatch:'full'},
     {path:'login',component:DefaulComponent,children:[{path:'',component:LoginComponent}]},
     {path:"about",component:AboutComponent},
     {path:'products',component:ProductsComponent,children:[{path:'',component:ItemsComponent}]},
-    {path:'product-details/:id',component:ProductDetailComponent},
+    {path:'product/:slug',component:ProductDetailComponent},
+    {path:'product-details/:id',redirectTo:'/product/:id',pathMatch:'full'}, // Legacy redirect
     {path:'solve',component:SolveComponent},
     {path:'rubik-solve/:name',component:RubikSolveComponent},
     {path:'color',component:ColorPaletteComponent},

@@ -1,288 +1,458 @@
-body{
-  width: 100%;
-  height: 100%;
+// Modern animated gradient background with floating particles
+.login-container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 1rem;
+  padding-top: 80px; // Account for fixed header
+  overflow: hidden;
+  
+  // Beautiful animated gradient background
+  background: linear-gradient(
+    135deg,
+    #667eea 0%,
+    #764ba2 25%,
+    #f093fb 50%,
+    #4facfe 75%,
+    #00f2fe 100%
+  );
+  background-size: 400% 400%;
+  animation: gradientShift 15s ease infinite;
+
+  @media (min-width: 768px) {
+    padding: 2rem;
+  }
+
+  // Animated gradient overlay for depth
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(
+      circle at 20% 50%,
+      rgba(120, 119, 198, 0.3),
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 80% 80%,
+      rgba(255, 124, 163, 0.3),
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 40% 20%,
+      rgba(99, 179, 237, 0.3),
+      transparent 50%
+    );
+    animation: overlayMove 20s ease infinite;
+    pointer-events: none;
+  }
+
+  // Floating particles/orbs for visual interest
+  &::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-image: 
+      radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 20%),
+      radial-gradient(circle at 90% 80%, rgba(255, 255, 255, 0.08) 0%, transparent 15%),
+      radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.05) 0%, transparent 25%),
+      radial-gradient(circle at 80% 10%, rgba(255, 255, 255, 0.12) 0%, transparent 18%),
+      radial-gradient(circle at 20% 90%, rgba(255, 255, 255, 0.09) 0%, transparent 22%);
+    animation: particlesFloat 25s ease-in-out infinite;
+    pointer-events: none;
+  }
 }
-.rubiks-cube-container {
-    position: relative;
-    perspective: 1000px;
-    display: flex;
-    justify-content: center;
+
+// Smooth gradient animation
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+// Overlay movement animation
+@keyframes overlayMove {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  33% {
+    transform: translate(30px, -30px) scale(1.1);
+    opacity: 0.8;
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+    opacity: 0.9;
+  }
+}
+
+// Floating particles animation
+@keyframes particlesFloat {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  25% {
+    transform: translateY(-20px) scale(1.05);
+  }
+  50% {
+    transform: translateY(10px) scale(0.95);
+  }
+  75% {
+    transform: translateY(-10px) scale(1.02);
+  }
+}
+
+.login-form {
+  position: relative;
+  background-color: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  padding: 1.5rem;
+  border-radius: 20px;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.1),
+    0 2px 8px rgba(0, 0, 0, 0.05),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.8);
+  width: 100%;
+  max-width: 400px;
+  z-index: 10; // Below header (header is z-index: 10000)
+  animation: fadeInUp 0.8s ease-out;
+  box-sizing: border-box;
+  overflow: hidden;
+
+  // Subtle inner glow
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 20px;
+    padding: 1px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.1));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  @media (min-width: 640px) {
+    padding: 2.5rem;
+    max-width: 500px;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.login-form h2 {
+  text-align: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 1.5rem;
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.login-form form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.form-group {
+  margin-bottom: 0;
+  flex-direction: column;
+  display: flex;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+label {
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.875rem;
+}
+
+.form-error {
+  color: #dc2626;
+  font-style: italic;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.form-control {
+  width: 100%;
+  max-width: 100%;
+  padding: 0.875rem 1rem;
+  font-size: 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+  min-width: 0;
+  background-color: #ffffff;
+
+  &:focus {
+    border-color: #667eea;
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+    transform: translateY(-1px);
+  }
+
+  &.invalid {
+    border-color: #fca5a5;
+    background-color: #fef2f2;
+  }
+
+  &.valid {
+    border-color: #86efac;
+    background-color: #f0fdf4;
+  }
+
+  &::placeholder {
+    color: #9ca3af;
+  }
+}
+
+.center-button {
+  width: 100%;
+  padding: 0.875rem 1.5rem;
+  margin-top: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  position: relative;
+  overflow: hidden;
+
+  // Shine effect on hover
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s;
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+
+    &::before {
+      left: 100%;
+    }
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  &:focus-visible {
+    outline: 3px solid rgba(102, 126, 234, 0.5);
+    outline-offset: 2px;
+  }
+}
+
+.capcha {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05));
+  border: 1px solid rgba(102, 126, 234, 0.2);
+  border-radius: 12px;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+
+  @media (min-width: 640px) {
+    flex-direction: row;
     align-items: center;
-    height: 100vh;
   }
-  
-  .rubiks-cube {
-    position: absolute;
-    width: 100px;
+}
+
+.capcha-detail {
+  width: 100%;
+  max-width: 100%;
+  min-height: 80px;
+  background-image: url('../../../assets/images/nagy-arnold-cPIP9PcaqkA-unsplash.jpg');
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  box-sizing: border-box;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+  @media (min-width: 640px) {
+    width: 200px;
+    flex-shrink: 0;
     height: 100px;
-    transform-style: preserve-3d;
-    animation: spin 10s infinite linear;
+    font-size: 1.875rem;
   }
-  
-  .rubiks-face 
-  {
-    position: absolute;
-    width: 100px;
-    height: 100px;
-    border: 1px solid #000;
+}
+
+.capcha-input {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
+
+  @media (min-width: 640px) {
+    flex: 1;
+    min-width: 0;
   }
-  
-  .front {
-    transform: translateZ(50px);
-    background-color: #008000; 
+}
+
+.capcha-item {
+  user-select: none;
+  font-style: italic;
+  color: #0C0705;
+  font-weight: 600;
+}
+
+.capcha-input-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.capcha-input-row label {
+  font-size: 0.875rem;
+  margin-bottom: 0;
+  white-space: nowrap;
+}
+
+.capcha-break-row {
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.refresh-capcha-btn {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+  border: 1px solid rgba(102, 126, 234, 0.2);
+  padding: 0.5rem;
+  outline: none;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
+    transform: rotate(180deg);
   }
-  
-  .back {
-    transform: rotateY(180deg) translateZ(50px);
-    background-color: #0000ff;  
+
+  &:focus-visible {
+    outline: 2px solid #667eea;
+    outline-offset: 2px;
   }
-  
-  .top {
-    transform: rotateX(90deg) translateZ(50px);
-    background-color: #ffffff; 
-  }
-  
-  .bottom {
-    transform: rotateX(-90deg) translateZ(50px);
-    background-color: #ffff00; 
-  }
-  
-  .left {
-    transform: rotateY(-90deg) translateZ(50px);
-    background-color: #ff8c00;
-  }
-  
-  .right {
-    transform: rotateY(90deg) translateZ(50px);
-    background-color: #ff0000;
-  }
-  
-  .block {
-    position: absolute;
+}
+
+.refresh-capcha-btn img {
+  width: 24px;
+  height: 24px;
+
+  @media (min-width: 640px) {
     width: 32px;
     height: 32px;
-    border: 1px solid #000;
-    display: inline-block;
   }
+}
 
-  .block:nth-child(1) 
-  {
-    top: 0;
-    left: 0;
-  }
-
-  .block:nth-child(2) {
-    top: 0;
-    left: 33px;
-  }
-
-  .block:nth-child(3) {
-    top: 0;
-    left: 66px;
-  }
-
-  .block:nth-child(4) {
-    top: 33px;
-    left: 0;
-  }
-
-  .block:nth-child(5) {
-    top: 33px;
-    left: 33px;
-  }
-
-  .block:nth-child(6) {
-    top: 33px;
-    left: 66px;
-  }
-
-  .block:nth-child(7) {
-    top: 66px;
-    left: 0;
-  }
-
-  .block:nth-child(8) {
-    top: 66px;
-    left: 33px;
-  }
-
-  .block:nth-child(9) {
-    top: 66px;
-    left: 66px;
-  }
-
-  .login-form {
-    position: relative;
-    background-color: rgba(255, 255, 255, 0.8);
-    padding: 20px;
-    border-radius: 5px;
-  }
-  
-  .login-form h2 
-  {
-    text-align: center;
-    color: #333;
-  }
-  
-  .login-form form {
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .login-form input {
-    margin-bottom: 10px;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-  }
-  
-  .form-group 
-  {
-    margin-bottom: 20px;
-    flex-direction: column;
-    display: flex;  
-  }
-
-    label
-    {
-      margin-bottom: 5px;
-      font-weight: bold;
-    }
-   
-
-  .form-error
-  {
-    color:#ff0000;
-    font-style: italic;
-  }
-  
-  .form-control
-  {
-  width: 100%;
-  padding: 10px;
+.capcha-res {
+  flex: 1;
+  min-width: 60px;
+  max-width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
   font-size: 16px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  }
-   
-  .center-button
-  {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 97%;
-    padding: 10px 20px;
-    margin-left: 20px;
-    font-size: 16px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    background-color: #007bff;
-    color: #fff;
+  box-sizing: border-box;
+  transition: all 0.3s ease;
+
+  &:focus {
+    border-color: #667eea;
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
   }
 
-  .center-button:hover
-  {
-   background-color: #0b7dda;
+  @media (min-width: 640px) {
+    min-width: 80px;
   }
-  // .login-form button {
-  //   padding: 10px;
-  //   border: none;
-  //   border-radius: 5px;
-  //   background-color: #2196F3;
-  //   color: #fff;
-  //   cursor: pointer;
-  // }
-  
-  // .login-form button:hover {
-  //   background-color: #0b7dda;
-  // }
+}
 
+.forgot-password {
+  text-align: center;
+  margin-top: 0.5rem;
 
-  .capcha
-  {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 25px;
-  }
+  a {
+    color: #667eea;
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.2s;
 
-  .capcha-detail
-  {
-    width: 200px;
-    height: 100px;
-    background-image: url('../../../assets/images/nagy-arnold-cPIP9PcaqkA-unsplash.jpg');
-    background-repeat: no-repeat;
-    background-size:300px 100px;
-    font-size: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
-
-  .capcha-input
-  {
-    margin-left: 50px;
-    display: flex;
-    justify-content: center;
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .capcha-item
-  {
-    user-select: none;
-    font-style: italic;
-    color: #0C0705;
-  }
-
-  .capcha-input-row
-  {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: row;
-  }
-  
-  .capcha-break-row
-  {
-    margin-left: 25px;
-  }
-
-  .refresh-capcha-btn
-  {
-    background: none;
-    border: none;
-    padding:0;
-    outline:none;
-    margin-left: 20px;
-    cursor: pointer;
-  }
-   
-  .forgot-password
-  {
-    position:relative;
-    margin-left: 50px;
-  }
-
-  .capcha-res
-  {
-    margin-left: 10px;
-  }
-
-  .refresh-capcha-btn img
-  {
-    width: 35px;
-    height: 35px;
-  }
- 
-
-  @keyframes spin {
-    from {
-      transform: rotateX(0deg) rotateY(0deg);
+    &:hover {
+      color: #764ba2;
+      text-decoration: underline;
     }
-    to{
-      transform: rotateX(360deg) rotateY(360deg);
+
+    &:focus-visible {
+      outline: 2px solid #667eea;
+      outline-offset: 2px;
+      border-radius: 4px;
     }
   }
+}

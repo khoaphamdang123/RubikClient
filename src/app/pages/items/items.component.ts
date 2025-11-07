@@ -1,6 +1,8 @@
 import { Component, Input } from '@angular/core';
 import { IRubik } from '../../models/item.model';
 import { environment } from '../../../environments/environment';
+import { toSlug } from '../../utils/slug.utils';
+
 @Component({
   selector: 'app-items',
   standalone: true,
@@ -9,6 +11,11 @@ import { environment } from '../../../environments/environment';
   styleUrl: './items.component.scss'
 })
 export class ItemsComponent{
-  @Input() rubik!:IRubik;
+  @Input() rubik!:IRubik; 
+
   public environment=`${environment.client_url}`;
+
+  getProductSlug(): string {
+    return toSlug(this.rubik.name);
+  }
 }

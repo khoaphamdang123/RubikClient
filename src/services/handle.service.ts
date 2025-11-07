@@ -45,7 +45,7 @@ export class HandleService {
     var response = await axios.get(`${environment.server_url}/products`,{headers:{Authorization:this.token}}).catch(err=>{
       if(err.response.status==400 || err.response.status==401)
         {
-          localStorage.removeItem("TOKEN");
+          localStorage.removeItem("TOKEN");          
 
           this.route.navigate(['/login']);  
 
@@ -212,13 +212,18 @@ async getDetailSolveRubikPage(name:string)
 
 async getSolvableRubik()
 {
- var solvable_rubik_list=["Rubik's Coach Cube","Rubik's 3x3","Rubik’s Apprentice 2x2"];
+ // Reset the array to avoid duplicates on multiple calls
+ this.solvable_rubiks = [];
+ 
+ var solvable_rubik_list=["Rubik's Coach Cube","Rubik's 3x3","Rubik's Apprentice 2x2"];
  for(let i=0;i<solvable_rubik_list.length;i++)
  {  var rubik=solvable_rubik_list[i];
     var res=await axios.get(`${environment.server_url}/product-details/${rubik}`,{headers:{Authorization:this.token}}).then((response)=>{
+      console.log('Fetched rubik data:', response.data.data);
       this.solvable_rubiks.push(response.data.data);
     }).catch(err=>{
-      if(err.response.status == 401)
+      console.error('Error fetching rubik:', rubik, err);
+      if(err.response && err.response.status == 401)
       {
       localStorage.removeItem("TOKEN");
       this.route.navigate(['/login']);
@@ -226,6 +231,7 @@ async getSolvableRubik()
       }
     });
   }
+  console.log('All solvable rubiks:', this.solvable_rubiks);
   return this.solvable_rubiks;
 }
 

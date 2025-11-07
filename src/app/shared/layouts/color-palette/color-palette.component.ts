@@ -1,4 +1,10 @@
-import { Component, OnInit,Output,EventEmitter,Input} from '@angular/core';
+import { Component, OnInit, Output, EventEmitter, Input } from '@angular/core';
+
+interface ColorOption {
+  name: string;
+  value: string;
+  displayName: string;
+}
 
 @Component({
   selector: 'app-color-palette',
@@ -8,56 +14,57 @@ import { Component, OnInit,Output,EventEmitter,Input} from '@angular/core';
   styleUrl: './color-palette.component.scss'
 })
 export class ColorPaletteComponent implements OnInit {
-     rows:any=[];
-     colors:string[]=['whitesmoke','orange','green','red','blue','yellow'];
-     backgroundColor:string='transparent';
-     @Input() color_disable!:string[];
-     @Output("update-color") color:EventEmitter<string>=new EventEmitter<string>();
-  ngOnInit(): void 
-  {
-    this.getColorRows();
-  }
-
-
-  getIndexColor(color:string)
-  { 
-    let idx=-1;
-    switch(color)
-    {
-      case 'whitesmoke':idx=0;break;
-      case 'orange':idx=1;break;
-      case 'green':idx=2;break;
-      case 'red':idx=3;break;
-      case 'blue':idx=4;break;
-      case 'yellow':idx=5;break;
-    }
-    return idx;
-  }
-
-  checkDisableBtn(picked_color:string)
-  {
-   var idx=this.getIndexColor(picked_color);
-   if(this.color_disable[idx]=='true')
-   {
-    return true;
-   }
-   return false;
-  }
+  backgroundColor: string = 'transparent';
   
+  @Input() color_disable!: string[];
+  @Output("update-color") color: EventEmitter<string> = new EventEmitter<string>();
 
+  colorOptions: ColorOption[] = [
+    { name: 'White', value: 'whitesmoke', displayName: 'White' },
+    { name: 'Orange', value: 'orange', displayName: 'Orange' },
+    { name: 'Green', value: 'green', displayName: 'Green' },
+    { name: 'Red', value: 'red', displayName: 'Red' },
+    { name: 'Blue', value: 'blue', displayName: 'Blue' },
+    { name: 'Yellow', value: 'yellow', displayName: 'Yellow' }
+  ];
 
-  getColorRows()
-  {
-    for(let i=0;i<this.colors.length;i+=3)
-    {
-      this.rows.push(this.colors.slice(i,i+3));
-    }
-    return this.rows;
+  ngOnInit(): void {
+    // Initialize with first color if needed
   }
 
-  changeBackgroundColor(color:string)
-  {
-    this.backgroundColor=color;
+  getColorName(colorValue: string): string {
+    if (colorValue === 'transparent') {
+      return 'None Selected';
+    }
+    const colorOption = this.colorOptions.find(c => c.value === colorValue);
+    return colorOption ? colorOption.displayName : 'Unknown';
+  }
+
+  getIndexColor(color: string): number {
+    const colorMap: { [key: string]: number } = {
+      'whitesmoke': 0,
+      'orange': 1,
+      'green': 2,
+      'red': 3,
+      'blue': 4,
+      'yellow': 5
+    };
+    return colorMap[color] ?? -1;
+  }
+
+  isColorDisabled(pickedColor: string): boolean {
+    if (!this.color_disable) {
+      return false;
+    }
+    const idx = this.getIndexColor(pickedColor);
+    return idx !== -1 && this.color_disable[idx] === 'true';
+  }
+
+  changeBackgroundColor(color: string): void {
+    if (this.isColorDisabled(color)) {
+      return;
+    }
+    this.backgroundColor = color;
     this.color.emit(this.backgroundColor);
   }
 }

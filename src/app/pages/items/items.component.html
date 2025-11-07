@@ -1,9 +1,14 @@
 <div class ="item">
-    <img src={{rubik.avatar}}>
+  
+    <a target="_self" href="{{environment}}/product/{{getProductSlug()}}" class="clickable-image">
+      <img src={{rubik.avatar}} alt="{{rubik.name}}">
+    </a>
     <div class ="info">
         <div class="title">
-        <h3>{{rubik.name}}</h3>
+        <a target="_self" href="{{environment}}/product/{{getProductSlug()}}" class="clickable-title">
+          <h3>{{rubik.name}}</h3>
+        </a>
         </div>
-        <a class="detail-btn" target="_self" href="{{environment}}/product-details/{{rubik.name}}">Detail</a>
+        <a class="detail-btn" target="_self" href="{{environment}}/product/{{getProductSlug()}}">Detail</a>
     </div>
     </div>

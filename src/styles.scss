@@ -14,11 +14,26 @@ body {
   padding: 0;
   margin: 0;
   @apply bg-gray-100;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+// Smooth scrolling
+html {
+  scroll-behavior: smooth;
+}
+
+// Focus visible for accessibility
+*:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
 }
 
 @layer components {
   .btn {
-    @apply py-2.5 px-6 rounded-lg;
+    @apply py-2.5 px-6 rounded-lg transition-all duration-200 font-medium;
+    @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
+    @apply disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   .btn-sm {
@@ -34,30 +49,32 @@ body {
   }
 
   .btn-outline-primary {
-    @apply bg-blue-50 text-blue-600 border border-blue-600 hover:text-white hover:bg-blue-700;
+    @apply bg-blue-50 text-blue-600 border-2 border-blue-600;
+    @apply hover:text-white hover:bg-blue-700 focus:ring-blue-500;
   }
 
   .btn-primary {
-    @apply text-white bg-blue-600 hover:bg-blue-700;
+    @apply text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500;
   }
+  
   .btn-success {
-    @apply text-white bg-green-600 hover:bg-green-700;
+    @apply text-white bg-green-600 hover:bg-green-700 focus:ring-green-500;
   }
 
   .btn-secondary {
-    @apply text-white bg-gray-600 hover:bg-gray-700;
+    @apply text-white bg-gray-600 hover:bg-gray-700 focus:ring-gray-500;
   }
 
   .btn-danger {
-    @apply text-white bg-red-600 hover:bg-red-700;
+    @apply text-white bg-red-600 hover:bg-red-700 focus:ring-red-500;
   }
 
   .form-group {
-    @apply flex flex-col gap-1;
+    @apply flex flex-col gap-1.5;
   }
 
   .form-error {
-    @apply text-red-600 text-sm font-medium;
+    @apply text-red-600 text-sm font-medium mt-1;
   }
 
   .form-label {
@@ -65,16 +82,81 @@ body {
   }
 
   .form-control {
-    @apply w-full py-2 px-3 outline-none border-2 border-gray-200 focus:border-blue-600 rounded-lg;
+    @apply w-full py-2.5 px-3 outline-none border-2 border-gray-200;
+    @apply focus:border-blue-600 rounded-lg transition-colors duration-200;
+    @apply text-base; // Prevent zoom on iOS
   }
+  
   .form-control.invalid {
-    @apply border-red-300;
+    @apply border-red-300 focus:border-red-500;
   }
+  
   .form-control.valid {
-    @apply border-green-300;
+    @apply border-green-300 focus:border-green-500;
   }
 
   .form-select {
-    @apply w-full py-2 px-3 outline-none border-2 border-gray-200 rounded-lg;
+    @apply w-full py-2.5 px-3 outline-none border-2 border-gray-200;
+    @apply focus:border-blue-600 rounded-lg transition-colors duration-200;
+    @apply text-base; // Prevent zoom on iOS
   }
+
+  // Responsive container
+  .container-responsive {
+    @apply w-full mx-auto px-4;
+    @apply sm:px-6 lg:px-8;
+    @apply max-w-7xl;
+  }
+
+  // Responsive grid
+  .grid-responsive {
+    @apply grid gap-4;
+    @apply grid-cols-1;
+    @apply sm:grid-cols-2;
+    @apply md:grid-cols-3;
+    @apply lg:grid-cols-4;
+    @apply xl:grid-cols-5;
+  }
+
+  // Card component
+  .card {
+    @apply bg-white rounded-lg shadow-md overflow-hidden;
+    @apply transition-shadow duration-200 hover:shadow-lg;
+  }
+
+  // Section spacing
+  .section {
+    @apply py-8 md:py-12 lg:py-16;
+  }
+}
+
+// Loading animation improvements
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+// Mobile menu animation
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.slide-down {
+  animation: slideDown 0.3s ease-out;
 }

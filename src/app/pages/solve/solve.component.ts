@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { IRubik } from '../../models/item.model';
 import { HandleService } from '../../../services/handle.service';
 import { SolveItemsComponent } from '../solve-items/solve-items.component';
@@ -6,30 +7,34 @@ import { SolveItemsComponent } from '../solve-items/solve-items.component';
 @Component({
   selector: 'app-solve',
   standalone: true,
-  imports: [SolveItemsComponent],
+  imports: [CommonModule, SolveItemsComponent],
   templateUrl: './solve.component.html',
   styleUrl: './solve.component.scss',
-  providers:[HandleService]
+  providers: [HandleService]
 })
 export class SolveComponent implements OnInit {
-  rubiks:IRubik[]=[];
-  rows:any[]=[];
+  rubiks: IRubik[] = [];
+  isLoading: boolean = true;
      
-  constructor(private handleService:HandleService){}
+  constructor(private handleService: HandleService) {}
 
   ngOnInit(): void {
     this.getSolvableRubik();
   } 
-  
 
-  async getSolvableRubik()
-  {
-   this.rubiks = await this.handleService.getSolvableRubik();
-   for(let i=0;i<this.rubiks.length;i+=3)
-   {
-     this.rows.push(this.rubiks.slice(i,i+3));
-   }
+  async getSolvableRubik(): Promise<void> {
+    try {
+      this.isLoading = true;
+      this.rubiks = await this.handleService.getSolvableRubik();
+      console.log('Fetched rubiks:', this.rubiks);
+    } catch (error) {
+      console.error('Error fetching solvable rubiks:', error);
+      this.rubiks = [];
+    } finally {
+      // Add a small delay for smooth loading transition
+      setTimeout(() => {
+        this.isLoading = false;
+      }, 500);
+    }
   }
-      
-
 }

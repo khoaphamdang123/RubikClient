@@ -1,32 +1,426 @@
+// ============================================
+// COLOR PALETTE - MODERN REDESIGN
+// ============================================
 
-.palette-container
-{
-    border: 1px solid black;
-    width: 160px;
-    height: auto;
-    background:transparent;
-    text-align: center;
-    vertical-align: baseline;
-    padding: 5px;
-    margin-top: 100px;
+.color-palette {
+  width: 100%;
+  padding: 1.25rem;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+  border-radius: 16px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.row
-{
-    display: flex;
-    flex-wrap: wrap;
-    margin-top: 10px;
-    justify-content:space-between;
+// ============================================
+// COLOR PALETTE HEADER
+// ============================================
+
+.color-palette-header {
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.color
-{ 
-  width: 45px;
-  height: 45px;
+.current-color-title {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  
+  // Smooth text animation
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.current-color-value {
+  font-weight: 700;
+  font-size: 1.25rem;
+  text-shadow: 
+    0 0 10px currentColor,
+    0 2px 4px rgba(0, 0, 0, 0.3);
+  letter-spacing: 0.5px;
+  
+  // Smooth color transition
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  // Add glow effect
+  filter: drop-shadow(0 0 8px currentColor);
+  
+  // Animation for color change
+  animation: colorPulse 0.5s ease-out;
+}
+
+@keyframes colorPulse {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+// ============================================
+// SELECTED COLOR DISPLAY
+// ============================================
+
+.selected-color-display {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.15);
+  }
+}
+
+.selected-color-preview {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.15),
+    inset 0 2px 8px rgba(255, 255, 255, 0.2);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  flex-shrink: 0;
+
+  &:hover {
+    transform: scale(1.05);
+    box-shadow: 
+      0 6px 16px rgba(0, 0, 0, 0.2),
+      inset 0 2px 8px rgba(255, 255, 255, 0.3);
+  }
+}
+
+.checkmark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 32px;
+  height: 32px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+
+  svg {
+    width: 20px;
+    height: 20px;
+    stroke: white;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+  }
+}
+
+.selected-color-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.selected-color-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.selected-color-name {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+  text-transform: capitalize;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// ============================================
+// COLOR GRID
+// ============================================
+
+.color-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.875rem;
+  
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// ============================================
+// COLOR BUTTON
+// ============================================
+
+.color-button {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.875rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
   cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+
+  // Hover Effect
+  &:hover:not(.disabled) {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.25);
+    transform: translateY(-2px);
+    box-shadow: 
+      0 8px 20px rgba(0, 0, 0, 0.2),
+      0 0 0 4px rgba(var(--color-rgb, 255, 255, 255), 0.1);
+
+    .color-swatch {
+      transform: scale(1.1);
+      box-shadow: 
+        0 8px 24px rgba(0, 0, 0, 0.3),
+        inset 0 2px 12px rgba(255, 255, 255, 0.3);
+    }
+
+    .color-name {
+      color: rgba(255, 255, 255, 1);
+    }
+  }
+
+  // Active State
+  &.active {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.4);
+    box-shadow: 
+      0 4px 16px rgba(0, 0, 0, 0.2),
+      0 0 0 3px rgba(var(--color-rgb, 255, 255, 255), 0.2);
+
+    .color-swatch {
+      border-color: rgba(255, 255, 255, 0.5);
+      transform: scale(1.05);
+      box-shadow: 
+        0 6px 20px rgba(0, 0, 0, 0.25),
+        inset 0 2px 10px rgba(255, 255, 255, 0.3);
+    }
+
+    .color-name {
+      color: rgba(255, 255, 255, 1);
+      font-weight: 700;
+    }
+  }
+
+  // Disabled State
+  &.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    background: rgba(255, 255, 255, 0.02);
+    border-color: rgba(255, 255, 255, 0.05);
+
+    .color-swatch {
+      filter: grayscale(0.5);
+      opacity: 0.6;
+    }
+
+    .color-name {
+      color: rgba(255, 255, 255, 0.4);
+    }
+  }
+
+  // Focus State (Accessibility)
+  &:focus-visible:not(.disabled) {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.5);
+    box-shadow: 
+      0 0 0 4px rgba(255, 255, 255, 0.15),
+      0 4px 16px rgba(0, 0, 0, 0.2);
+  }
 }
 
-.color:hover
-{
- opacity: 0.8;
+// ============================================
+// COLOR SWATCH
+// ============================================
+
+.color-swatch {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  border-radius: 10px;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.2),
+    inset 0 2px 8px rgba(255, 255, 255, 0.2);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  flex-shrink: 0;
+
+  // Add subtle gradient overlay
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 7px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, transparent 50%, rgba(0, 0, 0, 0.1) 100%);
+    pointer-events: none;
+  }
+}
+
+// ============================================
+// ACTIVE INDICATOR
+// ============================================
+
+.active-indicator {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 32px;
+  height: 32px;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+  animation: checkmarkPop 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+  svg {
+    width: 20px;
+    height: 20px;
+    stroke: white;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+  }
+}
+
+// ============================================
+// COLOR NAME
+// ============================================
+
+.color-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+  text-align: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  text-transform: capitalize;
+  letter-spacing: 0.3px;
+}
+
+// ============================================
+// ANIMATIONS
+// ============================================
+
+@keyframes checkmarkPop {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.2);
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+}
+
+// ============================================
+// RESPONSIVE DESIGN
+// ============================================
+
+@media (max-width: 768px) {
+  .color-palette {
+    padding: 1rem;
+  }
+
+  .current-color-title {
+    font-size: 1rem;
+  }
+
+  .current-color-value {
+    font-size: 1.125rem;
+  }
+
+  .selected-color-display {
+    padding: 0.875rem;
+  }
+
+  .selected-color-preview {
+    width: 52px;
+    height: 52px;
+  }
+
+  .color-button {
+    padding: 0.75rem;
+  }
+
+  .color-swatch {
+    width: 48px;
+    height: 48px;
+  }
+}
+
+@media (max-width: 480px) {
+  .color-palette {
+    padding: 0.875rem;
+  }
+
+  .current-color-title {
+    font-size: 0.9375rem;
+  }
+
+  .current-color-value {
+    font-size: 1rem;
+  }
+
+  .selected-color-display {
+    gap: 0.75rem;
+    padding: 0.75rem;
+  }
+
+  .selected-color-preview {
+    width: 48px;
+    height: 48px;
+  }
+
+  .selected-color-name {
+    font-size: 1rem;
+  }
+
+  .color-grid {
+    gap: 0.75rem;
+  }
+
+  .color-button {
+    padding: 0.625rem;
+  }
+
+  .color-swatch {
+    width: 44px;
+    height: 44px;
+  }
+
+  .color-name {
+    font-size: 0.8125rem;
+  }
 }

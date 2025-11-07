@@ -1,24 +1,86 @@
 <div class="container">
-    <div class ="rubik-title">
-        <h1>{{rubikName}}</h1>
-    </div>
-    <div class="device">
-     <select class="custom-select">
-     <option disabled selected>Select Device:</option>
-      @for(device of list_device;track $index)
-      {
-        <option [value]="device.device_name">{{device.device_name}}</option>
-      }
-     </select>
-    </div>
-    <div class="rubik-view-type">
-        <button class="threed-view-btn" (click)="switchThreeD()" [style.background-color]="threeDColor">
-            <img src="assets/images/rubik.png" alt="rubik.png">
-        </button>    
-        <button class="flat-view-btn" (click)="switchFlatView()" [style.background-color]="flatColor">
-         <img src="assets/images/Rubik's_cube_colors.png" alt="Rubik's_cube_colors.png">
-        </button>
-    </div>
+    <!-- Hero Section with Breadcrumbs -->
+    <section class="hero-section">
+        <div class="hero-content">
+            <div class="breadcrumbs">
+                <a href="/solve" class="breadcrumb-link">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                    </svg>
+                    Solve
+                </a>
+                <span class="breadcrumb-separator">/</span>
+                <span class="breadcrumb-current">{{rubikName}}</span>
+            </div>
+            <h1 class="page-title">
+                <svg class="title-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="9" y1="3" x2="9" y2="21"/>
+                    <line x1="15" y1="3" x2="15" y2="21"/>
+                    <line x1="3" y1="9" x2="21" y2="9"/>
+                    <line x1="3" y1="15" x2="21" y2="15"/>
+                </svg>
+                {{rubikName}}
+            </h1>
+            <p class="page-subtitle">Configure your cube and start solving with our IoT-powered system</p>
+        </div>
+    </section>
+
+    <!-- Control Panel -->
+    <section class="control-panel">
+        <div class="control-card device-selector-card">
+            <div class="card-header">
+                <svg class="card-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                </svg>
+                <h3 class="card-title">Select Device</h3>
+            </div>
+            <select class="custom-select" aria-label="Select a device for solving">
+                <option disabled selected>Choose a device...</option>
+                @for(device of list_device;track $index)
+                {
+                    <option [value]="device.device_name">{{device.device_name}}</option>
+                }
+            </select>
+        </div>
+
+        <div class="control-card view-toggle-card">
+            <div class="card-header">
+                <svg class="card-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                </svg>
+                <h3 class="card-title">View Mode</h3>
+            </div>
+            <div class="view-toggle-buttons">
+                <button 
+                    class="view-btn" 
+                    [class.active]="isShowThreeD"
+                    (click)="switchThreeD()" 
+                    title="3D View">
+                    <svg class="view-btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                    </svg>
+                    <span class="view-btn-text">3D View</span>
+                </button>
+                <button 
+                    class="view-btn" 
+                    [class.active]="!isShowThreeD"
+                    (click)="switchFlatView()" 
+                    title="Flat View">
+                    <svg class="view-btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                        <line x1="9" y1="3" x2="9" y2="21"/>
+                        <line x1="15" y1="3" x2="15" y2="21"/>
+                        <line x1="3" y1="9" x2="21" y2="9"/>
+                        <line x1="3" y1="15" x2="21" y2="15"/>
+                    </svg>
+                    <span class="view-btn-text">Flat View</span>
+                </button>
+            </div>
+        </div>
+    </section>
    
   @if(rubikName=="Rubik's 3x3")
   {
@@ -31,14 +93,23 @@
     }
    @if(isShowThreeD)
    {
-    <div class="rubik-view" (mousedown)="startRotate($event)" (mouseup)="stopRotate()">
-        <div class="rubik-cube" [style.transform]="cubeRotateStyle">    
+    <!-- 3D Cube View Card -->
+    <section class="cube-container-card">
+        <div class="cube-card-header">
+            <h3 class="cube-card-title">3D Interactive Cube</h3>
+            <div class="cube-card-badge">
+                <span class="badge-dot"></span>
+                <span class="badge-text">Drag to Rotate</span>
+            </div>
+        </div>
+        <div class="rubik-view" (mousedown)="startRotate($event)" (mouseup)="stopRotate()">
+            <div class="rubik-cube" [class.no-transition]="isDragging && !isButtonRotating" [style.transform]="cubeRotateStyle">    
         <div class="rubik-face front">
           <button class="block front-color" data-field="19" id="19" (click)="changeBlockColor($event)" [style.background-color]="rubik_block_color[18]"></button>
           <button class="block front-color" data-field="20" id="20" (click)="changeBlockColor($event)" [style.background-color]="rubik_block_color[19]"></button>
           <button class="block front-color" data-field="21" id="21" (click)="changeBlockColor($event)" [style.background-color]="rubik_block_color[20]"></button>
           <button class="block front-color" data-field="22" id="22" (click)="changeBlockColor($event)" [style.background-color]="rubik_block_color[21]"></button>
-          <button class="block front-color" data-field="23" id="23" (click)="changeBlockColor($event)" [style.background-color]="rubik_block_color[22]"></button>
+          <button class="block front-color" data-field="23" id="23" (click)="changeBlockColor($event)" [style.background-color]="rubik_block_color[22]">F</button>
           <button class="block front-color" data-field="24" id="24" (click)="changeBlockColor($event)" [style.background-color]="rubik_block_color[23]"></button>
           <button class="block front-color" data-field="25" id="25" (click)="changeBlockColor($event)" [style.background-color]="rubik_block_color[24]"></button>
           <button class="block front-color" data-field="26" id="26" (click)="changeBlockColor($event)" [style.background-color]="rubik_block_color[25]"></button>
@@ -49,7 +120,7 @@
             <button class="block back-color" data-field="38" id="38" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[37]"></button>
             <button class="block back-color" data-field="39" id="39" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[38]"></button>
             <button class="block back-color" data-field="40" id="40" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[39]"></button>
-            <button class="block back-color" data-field="41" id="41" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[40]"></button>
+            <button class="block back-color" data-field="41" id="41" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[40]">B</button>
             <button class="block back-color" data-field="42" id="42" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[41]"></button>
             <button class="block back-color" data-field="43" id="43" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[42]"></button>
             <button class="block back-color" data-field="44" id="44" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[43]"></button>
@@ -61,7 +132,7 @@
             <button class="block top-color" data-field="2" id="2" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[1]"></button>
             <button class="block top-color" data-field="3" id="3" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[2]"></button>
             <button class="block top-color" data-field="4" id="4" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[3]"></button>
-            <button class="block top-color" data-field="5" id="5" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[4]"></button>
+            <button class="block top-color" data-field="5" id="5" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[4]">T</button>
             <button class="block top-color" data-field="6" id="6" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[5]"></button>
             <button class="block top-color" data-field="7" id="7" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[6]"></button>
             <button class="block top-color" data-field="8" id="8" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[7]"></button>
@@ -73,7 +144,7 @@
             <button class="block bottom-color" data-field="47" id="47" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[46]"></button>
             <button class="block bottom-color" data-field="48" id="48" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[47]"></button>
             <button class="block bottom-color" data-field="49" id="49" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[48]"></button>
-            <button class="block bottom-color" data-field="50" id="50" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[49]"></button>
+            <button class="block bottom-color" data-field="50" id="50" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[49]">D</button>
             <button class="block bottom-color" data-field="51" id="51" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[50]"></button>
             <button class="block bottom-color" data-field="52" id="52" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[51]"></button>
             <button class="block bottom-color" data-field="53" id="53" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[52]"></button>
@@ -84,7 +155,7 @@
             <button class="block left-color" data-field="11" id="11" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[10]"></button>
             <button class="block left-color" data-field="12" id="12" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[11]"></button>
             <button class="block left-color" data-field="13" id="13" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[12]"></button>
-            <button class="block left-color" data-field="14" id="14" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[13]"></button>
+            <button class="block left-color" data-field="14" id="14" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[13]">L</button>
             <button class="block left-color" data-field="15" id="15" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[14]"></button>
             <button class="block left-color" data-field="16" id="16" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[15]"></button>
             <button class="block left-color" data-field="17" id="17" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[16]"></button>
@@ -95,7 +166,7 @@
             <button class="block right-color" data-field="29" id="29" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[28]"></button>
             <button class="block right-color" data-field="30" id="30" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[29]"></button>
             <button class="block right-color" data-field="31" id="31" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[30]"></button>
-            <button class="block right-color" data-field="32" id="32" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[31]"></button>
+            <button class="block right-color" data-field="32" id="32" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[31]">R</button>
             <button class="block right-color" data-field="33" id="33" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[32]"></button>
             <button class="block right-color" data-field="34" id="34" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[33]"></button>
             <button class="block right-color" data-field="35" id="35" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[34]"></button>
@@ -103,26 +174,56 @@
           </div>
     </div>
     </div>
-    <div class="rotate-btn">
-      <button class="left-rotate-btn"(click)="rotateLeftButton()">
-        <img class="left-img" src="assets/images/curved-left-arrow.png" (mouseover)="changeImage('assets/images/arrow-left.png','left')" (mouseout)="changeImage('assets/images/curved-left-arrow.png','left')" alt="curved-left-arrow.png" [src]="curr_left_img">
-    </button>
-      <button class="up-down-btn" (click)="rotateUpsideDown()"><img class="up-down-img" src="assets/images/down-arrow.png" alt="down-arrow.png" (mouseover)="changeImage('assets/images/down-arrow (1).png','up-down')" (mouseout)="changeImage('assets/images/down-arrow.png','up-down')" [src]="curr_up_down_img"></button>
-      <button class="right-rotate-btn" (click)="rotateRightButton()"><img class="right-img" src="assets/images/next.png" alt="next.png" (mouseover)="changeImage('assets/images/share.png','right')" (mouseout)="changeImage('assets/images/next.png','right')" [src]="curr_right_img"></button>
-    </div>
+        
+        <!-- Rotation Controls -->
+        <div class="rotation-controls">
+            <button class="rotation-btn rotation-btn-left" (click)="rotateLeftButton()" title="Rotate Left">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                    <path d="M3 3v5h5"/>
+                </svg>
+                <span class="rotation-btn-label">Left</span>
+            </button>
+            <button class="rotation-btn rotation-btn-flip" (click)="rotateUpsideDown()" title="Flip">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="17 1 21 5 17 9"/>
+                    <path d="M3 11V9a4 4 0 0 1 4-4h14"/>
+                    <polyline points="7 23 3 19 7 15"/>
+                    <path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+                </svg>
+                <span class="rotation-btn-label">Flip</span>
+            </button>
+            <button class="rotation-btn rotation-btn-right" (click)="rotateRightButton()" title="Rotate Right">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/>
+                    <path d="M21 3v5h-5"/>
+                </svg>
+                <span class="rotation-btn-label">Right</span>
+            </button>
+        </div>
+    </section>
 }   
 
    @else
    {
-    <div class="rubik-flat-view">      
-      <div class="rubik-flat-cube">
-        <div class="row">
+    <!-- Flat View Card -->
+    <section class="cube-container-card flat-view-container">
+        <div class="cube-card-header">
+            <h3 class="cube-card-title">Flat Cube Layout</h3>
+            <div class="cube-card-badge">
+                <span class="badge-dot"></span>
+                <span class="badge-text">All Faces Visible</span>
+            </div>
+        </div>
+        <div class="rubik-flat-view">      
+            <div class="rubik-flat-cube">
+                <div class="row">
           <div class="rubik-flat-face top-flat">
             <button class="block top-color" data-field="1" id="1" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[0]"></button>
             <button class="block top-color" data-field="2" id="2" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[1]"></button>
             <button class="block top-color" data-field="3" id="3" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[2]"></button>
             <button class="block top-color" data-field="4" id="4" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[3]"></button>
-            <button class="block top-color" data-field="5" id="5" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[4]"></button>
+            <button class="block top-color" data-field="5" id="5" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[4]">T</button>
             <button class="block top-color" data-field="6" id="6" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[5]"></button>
             <button class="block top-color" data-field="7" id="7" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[6]"></button>
             <button class="block top-color" data-field="8" id="8" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[7]"></button>
@@ -135,7 +236,7 @@
             <button class="block left-color" data-field="11" id="11" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[10]"></button>
             <button class="block left-color" data-field="12" id="12" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[11]"></button>
             <button class="block left-color" data-field="13" id="13" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[12]"></button>
-            <button class="block left-color" data-field="14" id="14" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[13]"></button>
+            <button class="block left-color" data-field="14" id="14" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[13]">L</button>
             <button class="block left-color" data-field="15" id="15" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[14]"></button>
             <button class="block left-color" data-field="16" id="16" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[15]"></button>
             <button class="block left-color" data-field="17" id="17" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[16]"></button>
@@ -146,7 +247,7 @@
           <button class="block front-color" data-field="20" id="20" (click)="changeBlockColor($event)" [style.background-color]="rubik_block_color[19]"></button>
           <button class="block front-color" data-field="21" id="21" (click)="changeBlockColor($event)" [style.background-color]="rubik_block_color[20]"></button>
           <button class="block front-color" data-field="22" id="22" (click)="changeBlockColor($event)" [style.background-color]="rubik_block_color[21]"></button>
-          <button class="block front-color" data-field="23" id="23" (click)="changeBlockColor($event)" [style.background-color]="rubik_block_color[22]"></button>
+          <button class="block front-color" data-field="23" id="23" (click)="changeBlockColor($event)" [style.background-color]="rubik_block_color[22]">F</button>
           <button class="block front-color" data-field="24" id="24" (click)="changeBlockColor($event)" [style.background-color]="rubik_block_color[23]"></button>
           <button class="block front-color" data-field="25" id="25" (click)="changeBlockColor($event)" [style.background-color]="rubik_block_color[24]"></button>
           <button class="block front-color" data-field="26" id="26" (click)="changeBlockColor($event)" [style.background-color]="rubik_block_color[25]"></button>
@@ -158,7 +259,7 @@
             <button class="block right-color" data-field="29" id="29" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[28]"></button>
             <button class="block right-color" data-field="30" id="30" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[29]"></button>
             <button class="block right-color" data-field="31" id="31" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[30]"></button>
-            <button class="block right-color" data-field="32" id="32" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[31]"></button>
+            <button class="block right-color" data-field="32" id="32" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[31]">R</button>
             <button class="block right-color" data-field="33" id="33" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[32]"></button>
             <button class="block right-color" data-field="34" id="34" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[33]"></button>
             <button class="block right-color" data-field="35" id="35" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[34]"></button>
@@ -169,7 +270,7 @@
   <button class="block back-color" data-field="38" id="38" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[37]"></button>
   <button class="block back-color" data-field="39" id="39" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[38]"></button>
   <button class="block back-color" data-field="40" id="40" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[39]"></button>
-  <button class="block back-color" data-field="41" id="41" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[40]"></button>
+  <button class="block back-color" data-field="41" id="41" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[40]">B</button>
   <button class="block back-color" data-field="42" id="42" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[41]"></button>
   <button class="block back-color" data-field="43" id="43" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[42]"></button>
   <button class="block back-color" data-field="44" id="44" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[43]"></button>
@@ -183,19 +284,131 @@
     <button class="block bottom-color" data-field="47" id="47" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[46]"></button>
     <button class="block bottom-color" data-field="48" id="48" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[47]"></button>
     <button class="block bottom-color" data-field="49" id="49" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[48]"></button>
-    <button class="block bottom-color" data-field="50" id="50" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[49]"></button>
+    <button class="block bottom-color" data-field="50" id="50" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[49]">D</button>
     <button class="block bottom-color" data-field="51" id="51" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[50]"></button>
     <button class="block bottom-color" data-field="52" id="52" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[51]"></button>
     <button class="block bottom-color" data-field="53" id="53" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[52]"></button>
     <button class="block bottom-color" data-field="54" id="54" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[53]"></button>
   </div>
-         </div>
-      </div>
-    </div>
+                </div>
+            </div>
+        </div>
+    </section>
    }
-}
-@else if(rubikName=="Rubik’s Apprentice 2x2")
-{   @if(is_camera_click)
+   
+   <!-- Bottom Section: Two Columns Layout -->
+   <section class="bottom-section">
+     <!-- Left Column: Image Upload & Logs -->
+     <div class="left-column">
+       <!-- Image Upload Section -->
+       <div class="section-card image-upload-card">
+         <div class="card-header">
+           <svg class="card-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+             <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+             <circle cx="8.5" cy="8.5" r="1.5"/>
+             <polyline points="21 15 16 10 5 21"/>
+           </svg>
+           <h3 class="card-title">Upload Cube Faces</h3>
+         </div>
+         <div class="image-upload-grid">
+           @for(num of nums_of_face;track $index)
+           {
+             <div class="image-item">
+               <app-image-detect (imageSelected)="onSelectedImage($event,$index+1)" (fileSelected)="onSelectedFile($event,$index+1)"></app-image-detect>
+               <div class="image-description">{{num}}</div>
+             </div>
+           }
+         </div>
+       </div>
+
+       <!-- Result Logs Section -->
+       <div class="section-card result-logs-card">
+         <div class="card-header">
+           <svg class="card-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+             <polyline points="14 2 14 8 20 8"/>
+             <line x1="16" y1="13" x2="8" y2="13"/>
+             <line x1="16" y1="17" x2="8" y2="17"/>
+             <polyline points="10 9 9 9 8 9"/>
+           </svg>
+           <h3 class="card-title">Solution Steps</h3>
+         </div>
+         <textarea #log_area class="logs" readonly placeholder="Solution steps will appear here..."></textarea>
+       </div>
+     </div>
+
+     <!-- Right Column: Color Palette & Actions -->
+     <div class="right-column">
+       <!-- Color Palette Section -->
+       <div class="section-card color-palette-card">
+         <div class="card-header">
+           <svg class="card-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+             <circle cx="13.5" cy="6.5" r=".5"/>
+             <circle cx="17.5" cy="10.5" r=".5"/>
+             <circle cx="8.5" cy="7.5" r=".5"/>
+             <circle cx="6.5" cy="12.5" r=".5"/>
+             <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/>
+           </svg>
+           <h3 class="card-title">Color Palette</h3>
+         </div>
+         <div class="color-palette-wrapper">
+           <app-color-palette (update-color)="changeBtnColor($event)"></app-color-palette>
+         </div>
+       </div>
+
+       <!-- Action Buttons Section -->
+       <div class="section-card actions-card">
+         <div class="card-header">
+           <svg class="card-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+             <circle cx="12" cy="12" r="10"/>
+             <polyline points="12 6 12 12 16 14"/>
+           </svg>
+           <h3 class="card-title">Actions</h3>
+         </div>
+         <div class="action-buttons">
+           <button class="action-btn action-btn-secondary" (click)="blankRubikBlock()">
+             <svg class="action-btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+               <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/>
+               <polyline points="13 2 13 9 20 9"/>
+             </svg>
+             <span class="action-btn-text">Blank</span>
+           </button>
+
+           <button class="action-btn action-btn-secondary" (click)="resetRubikBlock()">
+             <svg class="action-btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+               <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+               <path d="M21 3v5h-5"/>
+               <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
+               <path d="M3 21v-5h5"/>
+             </svg>
+             <span class="action-btn-text">Reset</span>
+           </button>
+
+           <button class="action-btn action-btn-warning" (click)="scrambleRubikBlock()">
+             <svg class="action-btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+               <polyline points="16 3 21 3 21 8"/>
+               <line x1="4" y1="20" x2="21" y2="3"/>
+               <polyline points="21 16 21 21 16 21"/>
+               <line x1="15" y1="15" x2="21" y2="21"/>
+               <line x1="4" y1="4" x2="9" y2="9"/>
+             </svg>
+             <span class="action-btn-text">Scramble</span>
+           </button>
+
+           <button class="action-btn action-btn-primary" (click)="solveRubik()">
+             <svg class="action-btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+               <polyline points="20 6 9 17 4 12"/>
+             </svg>
+             <span class="action-btn-text">Solve Cube</span>
+           </button>
+         </div>
+       </div>
+     </div>
+   </section>
+ }
+ @else if(rubikName=="Rubik's Apprentice 2x2")
+ {
+   @if(is_camera_click)
   {
    <div class="show-video">
     <!-- <h2>Hello man</h2>     -->
@@ -204,165 +417,261 @@
   }
   @if(isShowThreeD)
   {
-    <div class="rubik-view" (mousedown)="startRotate($event)" (mouseup)="stopRotate()">
-      <div class="rubik-cube" [style.transform]="cubeRotateStyle">    
-      <div class="rubik-face front">
-        <button class="block_2x2 front-color" data-field="9" id="9" (click)="changeBlockColor($event)" [style.background-color]="rubik_2x2_block_color[8]"></button>
-        <button class="block_2x2  front-color" data-field="10" id="10" (click)="changeBlockColor($event)" [style.background-color]="rubik_2x2_block_color[9]"></button>
-        <button class="block_2x2  front-color" data-field="11" id="11" (click)="changeBlockColor($event)" [style.background-color]="rubik_2x2_block_color[10]"></button>
-        <button class="block_2x2  front-color" data-field="12" id="12" (click)="changeBlockColor($event)" [style.background-color]="rubik_2x2_block_color[11]"></button>
-     
-      </div>
-      <div class="rubik-face back">
-          <button class="block_2x2  back-color" data-field="17" id="17" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[16]"></button>
-          <button class="block_2x2 back-color" data-field="18" id="18" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[17]"></button>
-          <button class="block_2x2  back-color" data-field="19" id="19" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[18]"></button>
-          <button class="block_2x2  back-color" data-field="20" id="20" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[19]"></button>
+   <!-- 3D Cube View Card -->
+   <section class="cube-container-card">
+       <div class="cube-card-header">
+           <h3 class="cube-card-title">3D Interactive Cube (2x2)</h3>
+           <div class="cube-card-badge">
+               <span class="badge-dot"></span>
+               <span class="badge-text">Drag to Rotate</span>
+           </div>
+       </div>
+       <div class="rubik-view" (mousedown)="startRotate($event)" (mouseup)="stopRotate()">
+           <div class="rubik-cube" [class.no-transition]="isDragging && !isButtonRotating" [style.transform]="cubeRotateStyle">    
+       <div class="rubik-face front">
+         <button class="block_2x2 front-color" data-field="9" id="9" (click)="changeBlockColor($event)" [style.background-color]="rubik_2x2_block_color[8]">F</button>
+         <button class="block_2x2  front-color" data-field="10" id="10" (click)="changeBlockColor($event)" [style.background-color]="rubik_2x2_block_color[9]"></button>
+         <button class="block_2x2  front-color" data-field="11" id="11" (click)="changeBlockColor($event)" [style.background-color]="rubik_2x2_block_color[10]"></button>
+         <button class="block_2x2  front-color" data-field="12" id="12" (click)="changeBlockColor($event)" [style.background-color]="rubik_2x2_block_color[11]"></button>
       
-
-        </div>
-        <div class="rubik-face top">
-          <button class="block_2x2  top-color" data-field="1" id="1" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[0]"></button>
-          <button class="block_2x2  top-color" data-field="2" id="2" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[1]"></button>
-          <button class="block_2x2 top-color" data-field="3" id="3" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[2]"></button>
-          <button class="block_2x2 top-color" data-field="4" id="4" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[3]"></button>
-        </div>
-        <div class="rubik-face bottom">
-          <button class="block_2x2  bottom-color" data-field="21" id="21" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[20]"></button>
-          <button class="block_2x2  bottom-color" data-field="22" id="22" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[21]"></button>
-          <button class="block_2x2  bottom-color" data-field="23" id="23" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[22]"></button>
-          <button class="block_2x2  bottom-color" data-field="24" id="24" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[23]"></button>
-          
-        </div>
-        <div class="rubik-face left">
-          <button class="block_2x2  left-color" data-field="5" id="5" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[4]"></button>
-          <button class="block_2x2  left-color" data-field="6" id="6" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[5]"></button>
-          <button class="block_2x2  left-color" data-field="7" id="7" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[6]"></button>
-          <button class="block_2x2  left-color" data-field="8" id="8" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[7]"></button>
-        </div>
-        <div class="rubik-face right">
-          <button class="block_2x2  right-color" data-field="13" id="13" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[12]"></button>
-          <button class="block_2x2  right-color" data-field="14" id="14" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[13]"></button>
-          <button class="block_2x2  right-color" data-field="15" id="15" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[14]"></button>
-          <button class="block_2x2  right-color" data-field="16" id="16" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[15]"></button>
+       </div>
+       <div class="rubik-face back">
+           <button class="block_2x2  back-color" data-field="17" id="17" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[16]">B</button>
+           <button class="block_2x2 back-color" data-field="18" id="18" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[17]"></button>
+           <button class="block_2x2  back-color" data-field="19" id="19" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[18]"></button>
+           <button class="block_2x2  back-color" data-field="20" id="20" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[19]"></button>
+       </div>
+         <div class="rubik-face top">
+           <button class="block_2x2  top-color" data-field="1" id="1" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[0]">T</button>
+           <button class="block_2x2  top-color" data-field="2" id="2" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[1]"></button>
+           <button class="block_2x2 top-color" data-field="3" id="3" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[2]"></button>
+           <button class="block_2x2 top-color" data-field="4" id="4" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[3]"></button>
+         </div>
+         <div class="rubik-face bottom">
+           <button class="block_2x2  bottom-color" data-field="21" id="21" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[20]">D</button>
+           <button class="block_2x2  bottom-color" data-field="22" id="22" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[21]"></button>
+           <button class="block_2x2  bottom-color" data-field="23" id="23" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[22]"></button>
+           <button class="block_2x2  bottom-color" data-field="24" id="24" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[23]"></button>
+         </div>
+         <div class="rubik-face left">
+           <button class="block_2x2  left-color" data-field="5" id="5" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[4]">L</button>
+           <button class="block_2x2  left-color" data-field="6" id="6" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[5]"></button>
+           <button class="block_2x2  left-color" data-field="7" id="7" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[6]"></button>
+           <button class="block_2x2  left-color" data-field="8" id="8" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[7]"></button>
+         </div>
+         <div class="rubik-face right">
+           <button class="block_2x2  right-color" data-field="13" id="13" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[12]">R</button>
+           <button class="block_2x2  right-color" data-field="14" id="14" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[13]"></button>
+           <button class="block_2x2  right-color" data-field="15" id="15" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[14]"></button>
+           <button class="block_2x2  right-color" data-field="16" id="16" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[15]"></button>
+         </div>
+   </div>
+   </div>
        
-        </div>
-  </div>
-  </div>
-  <div class="rotate-btn">
-    <button class="left-rotate-btn"(click)="rotateLeftButton()">
-      <img class="left-img" src="assets/images/curved-left-arrow.png" (mouseover)="changeImage('assets/images/arrow-left.png','left')" (mouseout)="changeImage('assets/images/curved-left-arrow.png','left')" alt="curved-left-arrow.png" [src]="curr_left_img">
-  </button>
-    <button class="up-down-btn" (click)="rotateUpsideDown()"><img class="up-down-img" src="assets/images/down-arrow.png" alt="down-arrow.png" (mouseover)="changeImage('assets/images/down-arrow (1).png','up-down')" (mouseout)="changeImage('assets/images/down-arrow.png','up-down')" [src]="curr_up_down_img"></button>
-    <button class="right-rotate-btn" (click)="rotateRightButton()"><img class="right-img" src="assets/images/next.png" alt="next.png" (mouseover)="changeImage('assets/images/share.png','right')" (mouseout)="changeImage('assets/images/next.png','right')" [src]="curr_right_img"></button>
-  </div>
+       <!-- Rotation Controls -->
+       <div class="rotation-controls">
+           <button class="rotation-btn rotation-btn-left" (click)="rotateLeftButton()" title="Rotate Left">
+               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                   <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                   <path d="M3 3v5h5"/>
+               </svg>
+               <span class="rotation-btn-label">Left</span>
+           </button>
+           <button class="rotation-btn rotation-btn-flip" (click)="rotateUpsideDown()" title="Flip">
+               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                   <polyline points="17 1 21 5 17 9"/>
+                   <path d="M3 11V9a4 4 0 0 1 4-4h14"/>
+                   <polyline points="7 23 3 19 7 15"/>
+                   <path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+               </svg>
+               <span class="rotation-btn-label">Flip</span>
+           </button>
+           <button class="rotation-btn rotation-btn-right" (click)="rotateRightButton()" title="Rotate Right">
+               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                   <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/>
+                   <path d="M21 3v5h-5"/>
+               </svg>
+               <span class="rotation-btn-label">Right</span>
+           </button>
+       </div>
+   </section>
   }
   @else
   {
-    <div class="rubik-flat-view">      
-      <div class="rubik-flat-cube">
-        <div class="row">
-          <div class="rubik-flat-face top-flat">
-            <button class="block_2x2 top-color" data-field="1" id="1" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[0]"></button>
-            <button class="block_2x2 top-color" data-field="2" id="2" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[1]"></button>
-            <button class="block_2x2 top-color" data-field="3" id="3" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[2]"></button>
-            <button class="block_2x2 top-color" data-field="4" id="4" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[3]"></button>
-          </div>
-        </div>
-        <div class="row">
-        <div class="rubik-flat-face left-flat">
-            <button class="block_2x2 left-color" data-field="5" id="5" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[4]"></button>
-            <button class="block_2x2 left-color" data-field="6" id="6" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[5]"></button>
-            <button class="block_2x2 left-color" data-field="7" id="7" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[6]"></button>
-            <button class="block_2x2 left-color" data-field="8" id="8" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[7]"></button>
-        </div>
-        <div class="rubik-flat-face front-flat">
-          <button class="block_2x2 front-color" data-field="9" id="9" (click)="changeBlockColor($event)" [style.background-color]="rubik_2x2_block_color[8]"></button>
-          <button class="block_2x2 front-color" data-field="10" id="10" (click)="changeBlockColor($event)" [style.background-color]="rubik_2x2_block_color[9]"></button>
-          <button class="block_2x2 front-color" data-field="11" id="11" (click)="changeBlockColor($event)" [style.background-color]="rubik_2x2_block_color[10]"></button>
-          <button class="block_2x2 front-color" data-field="12" id="12" (click)="changeBlockColor($event)" [style.background-color]="rubik_2x2_block_color[11]"></button>
-        </div>
-          <div class="rubik-flat-face right-flat">
-            <button class="block_2x2 right-color" data-field="13" id="13" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[12]"></button>
-            <button class="block_2x2 right-color" data-field="14" id="14" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[13]"></button>
-            <button class="block_2x2 right-color" data-field="15" id="15" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[14]"></button>
-            <button class="block_2x2 right-color" data-field="16" id="16" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[15]"></button>
+   <!-- Flat View Card -->
+   <section class="cube-container-card flat-view-container">
+       <div class="cube-card-header">
+           <h3 class="cube-card-title">Flat Cube Layout (2x2)</h3>
+           <div class="cube-card-badge">
+               <span class="badge-dot"></span>
+               <span class="badge-text">All Faces Visible</span>
+           </div>
+       </div>
+       <div class="rubik-flat-view">      
+           <div class="rubik-flat-cube">
+               <div class="row">
+         <div class="rubik-flat-face top-flat">
+           <button class="block_2x2 top-color" data-field="1" id="1" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[0]">T</button>
+           <button class="block_2x2 top-color" data-field="2" id="2" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[1]"></button>
+           <button class="block_2x2 top-color" data-field="3" id="3" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[2]"></button>
+           <button class="block_2x2 top-color" data-field="4" id="4" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[3]"></button>
+         </div>
+       </div>
+       <div class="row">
+       <div class="rubik-flat-face left-flat">
+           <button class="block_2x2 left-color" data-field="5" id="5" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[4]">L</button>
+           <button class="block_2x2 left-color" data-field="6" id="6" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[5]"></button>
+           <button class="block_2x2 left-color" data-field="7" id="7" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[6]"></button>
+           <button class="block_2x2 left-color" data-field="8" id="8" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[7]"></button>
+       </div>
+       <div class="rubik-flat-face front-flat">
+         <button class="block_2x2 front-color" data-field="9" id="9" (click)="changeBlockColor($event)" [style.background-color]="rubik_2x2_block_color[8]">F</button>
+         <button class="block_2x2 front-color" data-field="10" id="10" (click)="changeBlockColor($event)" [style.background-color]="rubik_2x2_block_color[9]"></button>
+         <button class="block_2x2 front-color" data-field="11" id="11" (click)="changeBlockColor($event)" [style.background-color]="rubik_2x2_block_color[10]"></button>
+         <button class="block_2x2 front-color" data-field="12" id="12" (click)="changeBlockColor($event)" [style.background-color]="rubik_2x2_block_color[11]"></button>
+       </div>
+
+         <div class="rubik-flat-face right-flat">
+           <button class="block_2x2 right-color" data-field="13" id="13" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[12]">R</button>
+           <button class="block_2x2 right-color" data-field="14" id="14" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[13]"></button>
+           <button class="block_2x2 right-color" data-field="15" id="15" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[14]"></button>
+           <button class="block_2x2 right-color" data-field="16" id="16" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[15]"></button>
 </div>
 <div class="rubik-flat-face back-flat">
-  <button class="block_2x2 back-color" data-field="17" id="17" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[16]"></button>
-  <button class="block_2x2 back-color" data-field="18" id="18" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[17]"></button>
-  <button class="block_2x2 back-color" data-field="19" id="19" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[18]"></button>
-  <button class="block_2x2 back-color" data-field="20" id="20" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[19]"></button>
+ <button class="block_2x2 back-color" data-field="17" id="17" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[16]">B</button>
+ <button class="block_2x2 back-color" data-field="18" id="18" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[17]"></button>
+ <button class="block_2x2 back-color" data-field="19" id="19" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[18]"></button>
+ <button class="block_2x2 back-color" data-field="20" id="20" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[19]"></button>
 </div>
 </div>  
 
 <div class="row">
-  <div class="rubik-flat-face bottom-flat">
-    <button class="block_2x2 bottom-color" data-field="21" id="21" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[20]"></button>
-    <button class="block_2x2 bottom-color" data-field="22" id="22" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[21]"></button>
-    <button class="block_2x2 bottom-color" data-field="23" id="23" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[22]"></button>
-    <button class="block_2x2 bottom-color" data-field="24" id="24" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[23]"></button>
-  </div>
-         </div>
+ <div class="rubik-flat-face bottom-flat">
+   <button class="block_2x2 bottom-color" data-field="21" id="21" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[20]">D</button>
+   <button class="block_2x2 bottom-color" data-field="22" id="22" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[21]"></button>
+   <button class="block_2x2 bottom-color" data-field="23" id="23" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[22]"></button>
+   <button class="block_2x2 bottom-color" data-field="24" id="24" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[23]"></button>
+ </div>
+               </div>
+           </div>
+       </div>
+   </section>
+  }
+  
+  <!-- Bottom Section: Two Columns Layout -->
+  <section class="bottom-section">
+    <!-- Left Column: Image Upload & Logs -->
+    <div class="left-column">
+      <!-- Image Upload Section -->
+      <div class="section-card image-upload-card">
+        <div class="card-header">
+          <svg class="card-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+            <circle cx="8.5" cy="8.5" r="1.5"/>
+            <polyline points="21 15 16 10 5 21"/>
+          </svg>
+          <h3 class="card-title">Upload Cube Faces</h3>
+        </div>
+        <div class="image-upload-grid">
+          @for(num of nums_of_face;track $index)
+          {
+            <div class="image-item">
+              <app-image-detect (imageSelected)="onSelectedImage($event,$index+1)" (fileSelected)="onSelectedFile($event,$index+1)"></app-image-detect>
+              <div class="image-description">{{num}}</div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Result Logs Section -->
+      <div class="section-card result-logs-card">
+        <div class="card-header">
+          <svg class="card-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <polyline points="10 9 9 9 8 9"/>
+          </svg>
+          <h3 class="card-title">Solution Steps</h3>
+        </div>
+        <textarea #log_area class="logs" readonly placeholder="Solution steps will appear here..."></textarea>
       </div>
     </div>
-  }
+
+    <!-- Right Column: Color Palette & Actions -->
+    <div class="right-column">
+      <!-- Color Palette Section -->
+      <div class="section-card color-palette-card">
+        <div class="card-header">
+          <svg class="card-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="13.5" cy="6.5" r=".5"/>
+            <circle cx="17.5" cy="10.5" r=".5"/>
+            <circle cx="8.5" cy="7.5" r=".5"/>
+            <circle cx="6.5" cy="12.5" r=".5"/>
+            <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/>
+          </svg>
+          <h3 class="card-title">Color Palette</h3>
+        </div>
+        <div class="color-palette-wrapper">
+          <app-color-palette (update-color)="changeBtnColor($event)"></app-color-palette>
+        </div>
+      </div>
+
+      <!-- Action Buttons Section -->
+      <div class="section-card actions-card">
+        <div class="card-header">
+          <svg class="card-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
+          </svg>
+          <h3 class="card-title">Actions</h3>
+        </div>
+        <div class="action-buttons">
+          <button class="action-btn action-btn-secondary" (click)="blankRubikBlock()">
+            <svg class="action-btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/>
+              <polyline points="13 2 13 9 20 9"/>
+            </svg>
+            <span class="action-btn-text">Blank</span>
+          </button>
+
+          <button class="action-btn action-btn-secondary" (click)="resetRubikBlock()">
+            <svg class="action-btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+              <path d="M21 3v5h-5"/>
+              <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
+              <path d="M3 21v-5h5"/>
+            </svg>
+            <span class="action-btn-text">Reset</span>
+          </button>
+
+          <button class="action-btn action-btn-warning" (click)="scrambleRubikBlock()">
+            <svg class="action-btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="16 3 21 3 21 8"/>
+              <line x1="4" y1="20" x2="21" y2="3"/>
+              <polyline points="21 16 21 21 16 21"/>
+              <line x1="15" y1="15" x2="21" y2="21"/>
+              <line x1="4" y1="4" x2="9" y2="9"/>
+            </svg>
+            <span class="action-btn-text">Scramble</span>
+          </button>
+
+          <button class="action-btn action-btn-primary" (click)="solveRubik()">
+            <svg class="action-btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            <span class="action-btn-text">Solve Cube</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
 }
 @else
 {
 <div class="not-found-view">
  <app-not-found></app-not-found>
  </div>
-}    
-  <div class="result-logs">
-    <textarea #log_area class="logs" readonly></textarea>
-  </div>
-   <div class="show-camera">
-    <!-- <button class="btn-camera" (click)="cameraClick()">
-    <img src="assets/images/dslr-camera.png" alt="dslr-camera.png">
-    </button> -->
-    @for(num of nums_of_face;track $index)
-    {<div class="image-item">
-      <app-image-detect (imageSelected)="onSelectedImage($event,$index+1)" (fileSelected)="onSelectedFile($event,$index+1)"></app-image-detect>
-      <div class="description">{{num}}</div>
-    </div>
-    }
-   </div>
-    <div class="color-palette">
-       <app-color-palette (update-color)="changeBtnColor($event)"></app-color-palette>
-    </div>
-    <div class ="support-btn">
-    <div class ="sp-btn-border">
-    <button class="sp-btn" (click)="blankRubikBlock()">
-    <span class="text">
-        Blank
-    </span>
-    <img src="assets/images/icons8-file-30.png" class="img-modi" alt="icons8-file-30.png">
-    </button>
-    </div>
-  <div class="sp-btn-border">
-    <button class="sp-btn" (click)="resetRubikBlock()">
-    <span class="text">
-        Reset
-    </span>
-    <img src="assets/images/circle-of-two-clockwise-arrows-rotation.png" alt="circle-of-two-clockwise-arrows-rotation.png">
-    </button>
-    </div>
-    <div class="sp-btn-border">
-    <button class="sp-btn-special" (click)="scrambleRubikBlock()">
-       <span class="text">
-        Scramble
-      </span>
-       <img src="assets/images/icons8-double-arrow-64.png" alt="icons8-double-arrow-64.png">
-    </button>
-    </div>
-  <div class="sp-btn-border">
-    <button class ="sp-btn" (click)="solveRubik()">
-      <span class="text">
-        Solve 
-      </span>
-      <img src="assets/images/rubik_solve.png" alt="rubik_solve">
-    </button>
-  </div>
-  </div>
+}
 </div>
