@@ -645,7 +645,7 @@ blankRubikBlock()
     this.rubik_block_color[i]='grey';
   }
 }
-else if(this.rubikName==="Rubik’s Apprentice 2x2")
+else if(this.rubikName==="Rubik's Apprentice 2x2")
 {
   for(let i=0;i<24;i++)
   {
@@ -758,7 +758,7 @@ else if(this.rubikName==="Rubik’s Apprentice 2x2")
       }
     }
   }
-  else if(this.rubikName=="Rubik’s Apprentice 2x2")
+  else if(this.rubikName=="Rubik's Apprentice 2x2")
   {
     for(let i=0;i<24;i++)
     { 
@@ -819,11 +819,12 @@ else if(this.rubikName==="Rubik’s Apprentice 2x2")
     colors_obj[ob[random_idx]]-=1;
     if(colors_obj[ob[random_idx]]==0)
     {
-      colors_obj=Object.keys(colors_obj).filter(key=>
-        key!=ob[random_idx]).reduce((newObject,key)=>{
+      colors_obj=Object.keys(colors_obj)
+        .filter(key=> key!=ob[random_idx])
+        .reduce((newObject: {[key:string]: number}, key)=>{
           newObject[key]=colors_obj[key];
           return newObject;
-        },{});
+        },{} as {[key:string]: number});
     }
   }
 }
@@ -847,11 +848,12 @@ else if(this.rubikName=="Rubik’s Apprentice 2x2")
     color_obj[ob[random_idx]]-=1;
     if(color_obj[ob[random_idx]]==0)
     {
-      color_obj=Object.keys(color_obj).filter(key=>
-        key!=ob[random_idx]).reduce((newObj,key)=>{
+      color_obj=Object.keys(color_obj)
+        .filter(key=> key!=ob[random_idx])
+        .reduce((newObj: {[key:string]: number}, key)=>{
           newObj[key]=color_obj[key];
           return newObj;
-        },{});
+        },{} as {[key:string]: number});
     }
   }
 }
@@ -1317,7 +1319,7 @@ async switchReverseDown()
 
  async scrambleRubikBlock()
   { 
-   
+  
    if(this.selected_images.length==1)
     { 
    var formData= new FormData();
@@ -1342,25 +1344,147 @@ async switchReverseDown()
     await this.handleService.sendImage(formData);
     }
   else{
-    var cube_notations=['U','F','R','L','D','B'];
-    var pattern=await this.scramble_generator(30,cube_notations);
-          
-    var val=pattern.split(' ');
-    for(let direct of val)
-      {
-        if(direct.includes('2'))
-          {
-            direct=direct.replace(/\d/g,"");
-            await this.rotationDirection(direct);
-            await this.rotationDirection(direct);
-          }
-        else
+    if(this.rubikName=="Rubik's 3x3"){
+      var cube_notations=['U','F','R','L','D','B'];
+      var pattern=await this.scramble_generator(30,cube_notations);
+      var val=pattern.split(' ');
+      for(let direct of val)
         {
-         await this.rotationDirection(direct);
+          if(direct.includes('2'))
+            {
+              direct=direct.replace(/\d/g,"");
+              await this.rotationDirection(direct);
+              await this.rotationDirection(direct);
+            }
+          else
+          {
+           await this.rotationDirection(direct);
+          }
+          await this.delay(100);
         }
-        await this.delay(100);
-      }
+    } else if(this.rubikName=="Rubik's Apprentice 2x2"){
+      // Perform a legal 2x2 scramble by applying random U, R, F moves
+      this.scrambleRubik2x2(20);
     }
+  }
+  }
+  
+  // ===========================
+  // 2x2 SCRAMBLE IMPLEMENTATION
+  // ===========================
+  private rotate2x2FaceCW(startIndex:number) {
+    // rotate 2x2 face clockwise; indices [0,1;2,3] map to [2,0;3,1]
+    const a = startIndex, b = startIndex+1, c = startIndex+2, d = startIndex+3;
+    const tmp = this.rubik_2x2_block_color[c];
+    this.rubik_2x2_block_color[c] = this.rubik_2x2_block_color[d];
+    this.rubik_2x2_block_color[d] = this.rubik_2x2_block_color[b];
+    this.rubik_2x2_block_color[b] = this.rubik_2x2_block_color[a];
+    this.rubik_2x2_block_color[a] = tmp;
+  }
+  private rotate2x2FaceCCW(startIndex:number) {
+    // inverse of CW
+    const a = startIndex, b = startIndex+1, c = startIndex+2, d = startIndex+3;
+    const tmp = this.rubik_2x2_block_color[a];
+    this.rubik_2x2_block_color[a] = this.rubik_2x2_block_color[b];
+    this.rubik_2x2_block_color[b] = this.rubik_2x2_block_color[d];
+    this.rubik_2x2_block_color[d] = this.rubik_2x2_block_color[c];
+    this.rubik_2x2_block_color[c] = tmp;
+  }
+  private rotate2x2Face180(startIndex:number) {
+    // swap pairs (a<->d, b<->c)
+    const a = startIndex, b = startIndex+1, c = startIndex+2, d = startIndex+3;
+    [this.rubik_2x2_block_color[a], this.rubik_2x2_block_color[d]] = [this.rubik_2x2_block_color[d], this.rubik_2x2_block_color[a]];
+    [this.rubik_2x2_block_color[b], this.rubik_2x2_block_color[c]] = [this.rubik_2x2_block_color[c], this.rubik_2x2_block_color[b]];
+  }
+  // Helper to swap two indices
+  private swap2x2(i:number, j:number) {
+    [this.rubik_2x2_block_color[i], this.rubik_2x2_block_color[j]] = [this.rubik_2x2_block_color[j], this.rubik_2x2_block_color[i]];
+  }
+  // U move (clockwise looking at U): rotate U face and cycle top rows of F, R, B, L
+  private moveU() {
+    // Rotate U face (0..3)
+    this.rotate2x2FaceCW(0);
+    // rows: F[0,1], R[0,1], B[0,1], L[0,1]
+    const f0=8, f1=9, r0=12, r1=13, b0=16, b1=17, l0=4, l1=5;
+    const t0 = this.rubik_2x2_block_color[f0], t1 = this.rubik_2x2_block_color[f1];
+    this.rubik_2x2_block_color[f0] = this.rubik_2x2_block_color[l0];
+    this.rubik_2x2_block_color[f1] = this.rubik_2x2_block_color[l1];
+    this.rubik_2x2_block_color[l0] = this.rubik_2x2_block_color[b0];
+    this.rubik_2x2_block_color[l1] = this.rubik_2x2_block_color[b1];
+    this.rubik_2x2_block_color[b0] = this.rubik_2x2_block_color[r0];
+    this.rubik_2x2_block_color[b1] = this.rubik_2x2_block_color[r1];
+    this.rubik_2x2_block_color[r0] = t0;
+    this.rubik_2x2_block_color[r1] = t1;
+  }
+  private moveUPrime() { this.moveU(); this.moveU(); this.moveU(); }
+  private moveU2() { this.moveU(); this.moveU(); }
+  // R move (clockwise looking at R): rotate R face and cycle right columns of U,F,D and left column of B
+  private moveR() {
+    // Rotate R face (12..15)
+    this.rotate2x2FaceCW(12);
+    // cols: U right [1,3], F right [9,11], D right [21,23], B left [16,18]
+    const u1=1,u3=3,f1=9,f3=11,d1=21,d3=23,b0=16,b2=18;
+    const t_u1=this.rubik_2x2_block_color[u1], t_u3=this.rubik_2x2_block_color[u3];
+    // U right -> F right
+    [this.rubik_2x2_block_color[u1], this.rubik_2x2_block_color[u3],
+     this.rubik_2x2_block_color[f1], this.rubik_2x2_block_color[f3],
+     this.rubik_2x2_block_color[d1], this.rubik_2x2_block_color[d3],
+     this.rubik_2x2_block_color[b0], this.rubik_2x2_block_color[b2]] =
+    [this.rubik_2x2_block_color[b0], this.rubik_2x2_block_color[b2],
+     this.rubik_2x2_block_color[u1], this.rubik_2x2_block_color[u3],
+     this.rubik_2x2_block_color[f1], this.rubik_2x2_block_color[f3],
+     this.rubik_2x2_block_color[d1], this.rubik_2x2_block_color[d3]];
+  }
+  private moveRPrime() { this.moveR(); this.moveR(); this.moveR(); }
+  private moveR2() { this.moveR(); this.moveR(); }
+  // F move (clockwise looking at F): rotate F face and cycle U bottom, R left, D top, L right
+  private moveF() {
+    // Rotate F face (8..11)
+    this.rotate2x2FaceCW(8);
+    // U bottom [2,3], R left [12,14], D top [20,21], L right [5,7]
+    const u2=2,u3=3,r0=12,r2=14,d0=20,d1=21,l1=5,l3=7;
+    const t_u2=this.rubik_2x2_block_color[u2], t_u3=this.rubik_2x2_block_color[u3];
+    // Cycle with orientation consideration approximated
+    [this.rubik_2x2_block_color[u2], this.rubik_2x2_block_color[u3],
+     this.rubik_2x2_block_color[r0], this.rubik_2x2_block_color[r2],
+     this.rubik_2x2_block_color[d0], this.rubik_2x2_block_color[d1],
+     this.rubik_2x2_block_color[l1], this.rubik_2x2_block_color[l3]] =
+    [this.rubik_2x2_block_color[l1], this.rubik_2x2_block_color[l3],
+     this.rubik_2x2_block_color[u2], this.rubik_2x2_block_color[u3],
+     this.rubik_2x2_block_color[r0], this.rubik_2x2_block_color[r2],
+     this.rubik_2x2_block_color[d0], this.rubik_2x2_block_color[d1]];
+  }
+  private moveFPrime() { this.moveF(); this.moveF(); this.moveF(); }
+  private moveF2() { this.moveF(); this.moveF(); }
+  private apply2x2Move(token:string) {
+    switch(token){
+      case 'U': this.moveU(); break;
+      case "U'": this.moveUPrime(); break;
+      case 'U2': this.moveU2(); break;
+      case 'R': this.moveR(); break;
+      case "R'": this.moveRPrime(); break;
+      case 'R2': this.moveR2(); break;
+      case 'F': this.moveF(); break;
+      case "F'": this.moveFPrime(); break;
+      case 'F2': this.moveF2(); break;
+      default: break;
+    }
+  }
+  private scrambleRubik2x2(length:number=20) {
+    // reset to solved first to ensure correct color counts
+    this.resetRubikBlock();
+    const moves = ['U',"U'",'U2','R',"R'",'R2','F',"F'",'F2'];
+    let lastAxis: 'U'|'R'|'F'|null = null;
+    let seq:string[] = [];
+    for(let i=0;i<length;i++){
+      // avoid repeating same axis consecutively
+      let candidates = moves.filter(m => (lastAxis==null) || m[0] !== lastAxis);
+      const pick = candidates[Math.floor(Math.random()*candidates.length)];
+      seq.push(pick);
+      lastAxis = pick[0] as 'U'|'R'|'F';
+      this.apply2x2Move(pick);
+    }
+    // Optional: could store/display seq if needed
   }
   
   getCurrentFaceState(rb_face:string[])
