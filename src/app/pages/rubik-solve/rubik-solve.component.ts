@@ -124,7 +124,7 @@ export class RubikSolveComponent implements OnInit, OnDestroy {
  
  getRubikName()
  {
-   this.rubikName=this.route.snapshot.paramMap.get('name') as string;
+   this.rubikName=this.route.snapshot.paramMap.get('name') as string;   
  }
  
  async checkTokenValid()
@@ -197,6 +197,7 @@ countAllFrequency(color:string):boolean
   if(this.rubikName=="Rubik's 3x3")
   {
     let num_freq=this.rubik_block_color.filter(c=>c==color).length;
+
     if(num_freq>=9)
     {
       return true;
@@ -218,11 +219,11 @@ countAllFrequency(color:string):boolean
 countColorOccurrences(color:string):number
 {
   if(this.rubikName=="Rubik's 3x3")
-  {
+  { 
     return this.rubik_block_color.filter(c=>c==color).length;
   }
   else if(this.rubikName=="Rubik's Apprentice 2x2")
-  {
+  {     
     return this.rubik_2x2_block_color.filter(c=>c==color).length;
   }
   return 0;
@@ -685,7 +686,7 @@ else if(this.rubikName==="Rubik's Apprentice 2x2")
       }
     }
   }
-  else if(this.rubikName=="Rubik’s Apprentice 2x2")
+  else if(this.rubikName=="Rubik's Apprentice 2x2")
   {
     for(let i=0;i<24;i++)
     {
@@ -861,7 +862,7 @@ else if(this.rubikName=="Rubik’s Apprentice 2x2")
 
 onSelectedImage(image_url:any,index:number):void
 {
-  this.selected_images[index-1]=image_url;
+  this.selected_images[index-1]=image_url;  
 }
 
 onSelectedFile(file:File,index:number):void{
@@ -1364,7 +1365,7 @@ async switchReverseDown()
         }
     } else if(this.rubikName=="Rubik's Apprentice 2x2"){
       // Perform a legal 2x2 scramble by applying random U, R, F moves
-      this.scrambleRubik2x2(20);
+      await this.scrambleRubik2x2(20);
     }
   }
   }
@@ -1470,7 +1471,7 @@ async switchReverseDown()
       default: break;
     }
   }
-  private scrambleRubik2x2(length:number=20) {
+  private async scrambleRubik2x2(length:number=20) {
     // reset to solved first to ensure correct color counts
     this.resetRubikBlock();
     const moves = ['U',"U'",'U2','R',"R'",'R2','F',"F'",'F2'];
@@ -1483,6 +1484,7 @@ async switchReverseDown()
       seq.push(pick);
       lastAxis = pick[0] as 'U'|'R'|'F';
       this.apply2x2Move(pick);
+      await this.delay(100);
     }
     // Optional: could store/display seq if needed
   }
@@ -1549,14 +1551,15 @@ async switchReverseDown()
   var rubik_cube=  this.rubik_block_color;
   var upper_face=rubik_cube.slice(0,9);
   var right_face = rubik_cube.slice(27,36);
-  var front_face=rubik_cube.slice(18,27);
+  var front_face=rubik_cube.slice(18,27);  
   var down_face= rubik_cube.slice(45,54);
   var left_face=rubik_cube.slice(9,18);
-  var back_face=rubik_cube.slice(36,45);
+  var back_face=rubik_cube.slice(36,45);  
   var manual_ordered_face =upper_face.concat(right_face,front_face,down_face,left_face,back_face);
   
   var res=this.rubikName=="Rubik's 3x3"?await this.handleService.solveRubik(this.rubikName,this.username,manual_ordered_face):await this.handleService.solveRubik(this.rubikName,this.username,this.rubik_2x2_block_color);
-  var solve_res=res.split(' ');
+  
+  var solve_res=res.split(' ');  
 
   for(let i=0;i<solve_res.length-1;i++)
     { 
@@ -1583,8 +1586,8 @@ async switchReverseDown()
   ngOnDestroy(){
     // Clean up animation frame when component is destroyed
     if(this.animationFrameId){
-      cancelAnimationFrame(this.animationFrameId);
-      this.animationFrameId=null;
+      cancelAnimationFrame(this.animationFrameId);      
+      this.animationFrameId=null;      
     }
   }
 
@@ -1597,9 +1600,10 @@ async switchReverseDown()
 
   private applyFlatScaleFit(): void {
     const { container, cube } = this.getActiveFlatRefs();
+
     if(!container || !cube) return;
 
-    const containerRect = container.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();    
     const cubeRect = cube.getBoundingClientRect();
     if(cubeRect.width === 0 || cubeRect.height === 0) {
       return;
@@ -1634,6 +1638,7 @@ async switchReverseDown()
     }
     return 1;
   }
+  
 
   private clearFlatScale(): void {
     const { cube } = this.getActiveFlatRefs();
@@ -1645,9 +1650,10 @@ async switchReverseDown()
     const start = performance.now();
     const loop = () => {
       if(!this.transitioningToFlat) return;
-      const now = performance.now();
-      this.applyFlatScaleFit();
-      if(now - start < durationMs) {
+      const now = performance.now();      
+      this.applyFlatScaleFit();      
+      if(now - start < durationMs) 
+      {
         requestAnimationFrame(loop);
       }
     };
