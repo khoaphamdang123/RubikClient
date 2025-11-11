@@ -38,6 +38,9 @@ export class RubikSolveComponent implements OnInit, OnDestroy {
   animationFrameId:number|null=null;
   isDragging:boolean=false;
   isButtonRotating:boolean=false;
+  isTransitioning:boolean=false;
+  transitioningToFlat:boolean=false;
+  transitioningToCube:boolean=false;
   color_face:string[]=['green','red','blue','orange'];
   is_upside_down:boolean=false;
   curr_left_img:string='assets/images/curved-left-arrow.png';
@@ -61,7 +64,12 @@ export class RubikSolveComponent implements OnInit, OnDestroy {
    
   @ViewChild('video_player',{static:true}) video_player!:ElementRef;
   @ViewChild('log_area',{static:true}) log_area!:ElementRef;
+  @ViewChild('flatContainer3x3') flatContainer3x3?:ElementRef<HTMLElement>;
+  @ViewChild('flatCube3x3') flatCube3x3?:ElementRef<HTMLElement>;
+  @ViewChild('flatContainer2x2') flatContainer2x2?:ElementRef<HTMLElement>;
+  @ViewChild('flatCube2x2') flatCube2x2?:ElementRef<HTMLElement>;
    eventSubsribe!:Subscription;
+  private flatResizeObserver?: ResizeObserver;
   constructor(private popupService:PopupService,private handleService:HandleService,private sseService:SesService,private route:ActivatedRoute)
   {    
   }
@@ -135,6 +143,7 @@ initColorDisable()
 checkFrequencyColor(color:string)
 {   
   var is_disable=this.countAllFrequency(color);
+  
   let idx=this.getIndexColor(color);
 
   if(idx !== -1)
@@ -196,6 +205,7 @@ countAllFrequency(color:string):boolean
   else if(this.rubikName=="Rubik's Apprentice 2x2")
   {
     let num_freq=this.rubik_2x2_block_color.filter(c=>c==color).length;
+    
     if(num_freq>=4)
     {
       return true;
@@ -224,15 +234,51 @@ showValue()
 }
 switchThreeD()
 {
-  this.isShowThreeD=true;
-  this.threeDColor='#3d81f6';
-  this.flatColor='transparent';
+  if(this.isTransitioning) return;
+  
+  this.isTransitioning = true;
+  this.transitioningToCube = true;
+  this.transitioningToFlat = false;
+  
+  // Wait a bit to ensure the flat view is rendered, then start transition
+  setTimeout(() => {
+    this.isShowThreeD = true;
+    this.threeDColor = '#3d81f6';
+    this.flatColor = 'transparent';
+    
+    // Remove transition class after animation completes
+    setTimeout(() => {
+      this.transitioningToCube = false;
+      this.isTransitioning = false;
+    }, 1200); // Match CSS transition duration
+  }, 50);
 }
 switchFlatView()
 {
-  this.isShowThreeD=false;
-  this.threeDColor='transparent';
-  this.flatColor='#3d81f6';
+  if(this.isTransitioning) return;
+  
+  this.isTransitioning = true;
+  this.transitioningToFlat = true;
+  this.transitioningToCube = false;
+  
+  // Start transition, then switch view
+  this.isShowThreeD = false;
+  this.threeDColor = 'transparent';
+  this.flatColor = '#3d81f6';
+  
+  // Fit flat cube into container during transition to avoid clipping (apply immediately and next frame)
+  this.applyFlatScaleFit();
+  requestAnimationFrame(() => this.applyFlatScaleFit());
+  // Continuously adapt scale during the transition window
+  this.runFlatScaleLoop(1200);
+  // Keep auto-fit active while in flat mode
+  this.startFlatAutoFit();
+  
+  // Remove transition class after animation completes
+  setTimeout(() => {
+    this.transitioningToFlat = false;
+    this.isTransitioning = false;
+  }, 1200); // Match CSS transition duration
 }
 
 startRotate(event:MouseEvent)
@@ -258,7 +304,7 @@ startRotate(event:MouseEvent)
 stopRotate()
 { 
   this.isRotating=false;
-  this.isDragging=false;
+  this.isDragging=false;  
   
   // Start momentum animation if there's velocity
   if(Math.abs(this.velocityX)>0.5 || Math.abs(this.velocityY)>0.5){
@@ -292,8 +338,7 @@ rotateCube(event:MouseEvent)
     // Update positions
     this.startPosX=event.clientX;
     this.startPostY=event.clientY;
-    this.lastTimestamp=currentTime;
-    
+    this.lastTimestamp=currentTime;    
     // Update cube style without transition for smooth dragging
     this.updateCubeTransform();
   }
@@ -1266,7 +1311,7 @@ async switchReverseDown()
         {
       solve_value=solve_value.replace(/\d/g,'');
       this.rotationDirection(solve_value);
-      await this.delay(200);
+      await this.delay(200);      
         }    
  }
 
@@ -1298,7 +1343,8 @@ async switchReverseDown()
     }
   else{
     var cube_notations=['U','F','R','L','D','B'];
-    var pattern=await this.scramble_generator(30,cube_notations);  
+    var pattern=await this.scramble_generator(30,cube_notations);
+          
     var val=pattern.split(' ');
     for(let direct of val)
       {
@@ -1416,5 +1462,95 @@ async switchReverseDown()
       cancelAnimationFrame(this.animationFrameId);
       this.animationFrameId=null;
     }
+  }
+
+  private getActiveFlatRefs(): { container?: HTMLElement, cube?: HTMLElement } {
+    // Determine which flat view is currently rendered based on cube type
+    const container = this.rubikName=="Rubik's 3x3" ? this.flatContainer3x3?.nativeElement : this.flatContainer2x2?.nativeElement;
+    const cube = this.rubikName=="Rubik's 3x3" ? this.flatCube3x3?.nativeElement : this.flatCube2x2?.nativeElement;
+    return { container, cube };
+  }
+
+  private applyFlatScaleFit(): void {
+    const { container, cube } = this.getActiveFlatRefs();
+    if(!container || !cube) return;
+
+    const containerRect = container.getBoundingClientRect();
+    const cubeRect = cube.getBoundingClientRect();
+    if(cubeRect.width === 0 || cubeRect.height === 0) {
+      return;
+    }
+
+    // Estimate natural size without clearing transforms by dividing by current scale
+    const currentScale = this.getElementScale(cube);
+    const naturalWidth = currentScale > 0 ? (cubeRect.width / currentScale) : cubeRect.width;
+    const naturalHeight = currentScale > 0 ? (cubeRect.height / currentScale) : cubeRect.height;
+
+    // Add a small margin so unfolding never touches the edge
+    const marginFactor = 0.96;
+    const scaleX = (containerRect.width * marginFactor) / naturalWidth;
+    const scaleY = (containerRect.height * marginFactor) / naturalHeight;
+    const fitScale = Math.min(scaleX, scaleY, 1);
+
+    cube.style.transformOrigin = 'center center';
+    cube.style.transform = `scale(${fitScale})`;
+  }
+
+  private getElementScale(el: HTMLElement): number {
+    const style = getComputedStyle(el);
+    const transform = style.transform || '';
+    // matrix(a, b, c, d, e, f) -> scaleX = a
+    // matrix3d(a1, ..., a11, a12, a13, a14, a15, a16) -> scaleX = a1
+    if (transform.startsWith('matrix3d(')) {
+      const values = transform.slice(9, -1).split(',').map(v => parseFloat(v.trim()));
+      if (values.length >= 16 && !Number.isNaN(values[0])) return Math.abs(values[0]);
+    } else if (transform.startsWith('matrix(')) {
+      const values = transform.slice(7, -1).split(',').map(v => parseFloat(v.trim()));
+      if (values.length >= 6 && !Number.isNaN(values[0])) return Math.abs(values[0]);
+    }
+    return 1;
+  }
+
+  private clearFlatScale(): void {
+    const { cube } = this.getActiveFlatRefs();
+    if(!cube) return;
+    cube.style.transform = '';
+  }
+
+  private runFlatScaleLoop(durationMs: number): void {
+    const start = performance.now();
+    const loop = () => {
+      if(!this.transitioningToFlat) return;
+      const now = performance.now();
+      this.applyFlatScaleFit();
+      if(now - start < durationMs) {
+        requestAnimationFrame(loop);
+      }
+    };
+    requestAnimationFrame(loop);
+  }
+
+  private startFlatAutoFit(): void {
+    const { container } = this.getActiveFlatRefs();
+    if(!container) return;
+    if(this.flatResizeObserver){
+      this.flatResizeObserver.disconnect();
+      this.flatResizeObserver = undefined;
+    }
+    // Observe container size changes
+    this.flatResizeObserver = new ResizeObserver(() => {
+      this.applyFlatScaleFit();
+    });
+    this.flatResizeObserver.observe(container);
+    // Initial fit
+    this.applyFlatScaleFit();
+  }
+
+  private stopFlatAutoFit(): void {
+    if(this.flatResizeObserver){
+      this.flatResizeObserver.disconnect();
+      this.flatResizeObserver = undefined;
+    }
+    this.clearFlatScale();
   }
 }

@@ -26,8 +26,8 @@ export class ProfileComponent implements OnInit {
   ngOnInit(): void {
     this.getProfilePage();
     this.role = this.convertRole(this.user.role_id as number);
-    this.checkIfOwnProfile();
-    this.checkOnlineStatus();
+    this.checkIfOwnProfile();    
+    this.checkOnlineStatus();    
   }
 
   convertRole(role_id: number): string {
@@ -66,7 +66,7 @@ export class ProfileComponent implements OnInit {
       const lastActionDate = new Date(this.user.last_action);
       const now = new Date();
       const diffMinutes = (now.getTime() - lastActionDate.getTime()) / (1000 * 60);
-      this.isOnline = diffMinutes < 5;
+      this.isOnline = diffMinutes < 5;            
     }
   }
 

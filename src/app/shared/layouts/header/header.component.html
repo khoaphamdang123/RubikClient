@@ -1,72 +1,153 @@
 <header class="header">
-  <div class="logo">
-    <a href="/about" aria-label="Home">
-      <img src="assets/images/pngegg.png" alt="Rubik's Cube Logo">
-    </a>
-  </div>
-  
-  <!-- Mobile menu button -->
-  <button 
-    class="mobile-menu-btn"
-    (click)="toggleMobileMenu()"
-    [attr.aria-expanded]="isMobileMenuOpen"
-    aria-label="Toggle navigation menu"
-    aria-controls="mobile-menu">
-    <span class="hamburger-line" [class.active]="isMobileMenuOpen"></span>
-    <span class="hamburger-line" [class.active]="isMobileMenuOpen"></span>
-    <span class="hamburger-line" [class.active]="isMobileMenuOpen"></span>
-  </button>
-
-  <nav class="nav" [class.mobile-open]="isMobileMenuOpen" id="mobile-menu">
-    <ul>
-      <li><a href="/products" (click)="closeMobileMenu()">PRODUCTS</a></li>
-      <li><a href="/about" (click)="closeMobileMenu()">ABOUT</a></li>
-      <li><a href="/solve" (click)="closeMobileMenu()">SOLVE-CUBE</a></li>
-      <li>
-        <a href="https://www.spinmaster.com/en-US/customer-support/" 
-           target="_blank" 
-           rel="noopener noreferrer"
-           (click)="closeMobileMenu()">
-          SUPPORTS
-        </a>
-      </li>
-    </ul>
-  </nav>
-  
-  <div class="dropdown">
+  <div class="header-container">
+    <!-- Logo Section -->
+    <div class="logo">
+      <a href="/about" aria-label="Home" class="logo-link">
+        <img src="assets/images/pngegg.png" alt="Rubik's Cube Logo" class="logo-img">
+        <span class="logo-text">Rubik's App</span>
+      </a>
+    </div>
+    
+    <!-- Mobile menu button -->
     <button 
-      #dropdownButton
-      class="dropbtn"
-      (click)="toggleDropdown()"
-      [attr.aria-expanded]="isDropdownOpen"
-      aria-label="User menu"
-      aria-haspopup="true">
-      <img class="avatar" 
-           src="https://gw.alipayobjects.com/zos/rmsportal/BiazfanxmamNRoxxVxka.png" 
-           alt="User avatar">
+      #mobileMenuBtn
+      class="mobile-menu-btn"
+      (click)="toggleMobileMenu()"
+      [attr.aria-expanded]="isMobileMenuOpen"
+      aria-label="Toggle navigation menu"
+      aria-controls="mobile-menu"
+      [class.active]="isMobileMenuOpen">
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
     </button>
-    <div 
-      #dropdownContent
-      class="dropdown-content" 
-      [class.show]="isDropdownOpen"
-      [style.top]="dropdownPosition.top"
-      [style.right]="dropdownPosition.right">
-      <a href="" 
-         onclick="return false;" 
-         (click)="navigateProfile(); closeDropdown()"
-         role="menuitem">Profile</a>
-      @if(user && user.role_id==1) {
-        <a href="/add-product" (click)="closeDropdown()" role="menuitem">Add Product</a>
-        <a href="/add-account" (click)="closeDropdown()" role="menuitem">Add Account</a>
-      }  
-      <a href="" 
-         onclick="return false;" 
-         (click)="navigateDevices(); closeDropdown()"
-         role="menuitem">Devices</a>
-      <a href="" 
-         onclick="return false;" 
-         (click)="signOut(); closeDropdown()"
-         role="menuitem">Sign Out</a>
+
+    <!-- Navigation -->
+    <nav #mobileMenu class="nav" [class.mobile-open]="isMobileMenuOpen" id="mobile-menu">
+      <ul class="nav-list">
+        <li class="nav-item">
+          <a href="/products" 
+             (click)="closeMobileMenu()" 
+             class="nav-link"
+             routerLink="/products"
+             routerLinkActive="active"
+             [routerLinkActiveOptions]="{exact: false}">
+            <span class="nav-text">PRODUCTS</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/about" 
+             (click)="closeMobileMenu()" 
+             class="nav-link"
+             routerLink="/about"
+             routerLinkActive="active"
+             [routerLinkActiveOptions]="{exact: false}">
+            <span class="nav-text">ABOUT</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/solve" 
+             (click)="closeMobileMenu()" 
+             class="nav-link"
+             routerLink="/solve"
+             routerLinkActive="active"
+             [routerLinkActiveOptions]="{exact: false}">
+            <span class="nav-text">SOLVE-CUBE</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="https://www.spinmaster.com/en-US/customer-support/" 
+             target="_blank" 
+             rel="noopener noreferrer"
+             (click)="closeMobileMenu()"
+             class="nav-link">
+            <span class="nav-text">SUPPORTS</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+    <!-- User Dropdown -->
+    <div class="dropdown">
+      <button 
+        #dropdownButton
+        class="dropbtn"
+        (click)="toggleDropdown()"
+        [attr.aria-expanded]="isDropdownOpen"
+        aria-label="User menu"
+        aria-haspopup="true"
+        [class.active]="isDropdownOpen">
+
+        <div class="avatar-wrapper">
+          <img class="avatar" 
+               [src]="avatar || 'https://gw.alipayobjects.com/zos/rmsportal/BiazfanxmamNRoxxVxka.png'" 
+               alt="User avatar"
+               onerror="this.src='https://gw.alipayobjects.com/zos/rmsportal/BiazfanxmamNRoxxVxka.png'">
+          <span class="avatar-badge"></span>
+        </div>
+      </button>
+      <div 
+        #dropdownContent
+        class="dropdown-content" 
+        [class.show]="isDropdownOpen"
+        [style.top]="dropdownPosition.top"
+        [style.right]="dropdownPosition.right">
+        <div class="dropdown-header">
+          <div class="dropdown-user-info">
+            <div class="dropdown-avatar">
+              <img [src]="avatar || 'https://gw.alipayobjects.com/zos/rmsportal/BiazfanxmamNRoxxVxka.png'" 
+                   alt="User"
+                   onerror="this.src='https://gw.alipayobjects.com/zos/rmsportal/BiazfanxmamNRoxxVxka.png'">
+            </div>
+            <div class="dropdown-user-details">
+              <div class="dropdown-username">{{ user?.username || 'User' }}</div>
+              <div class="dropdown-role">{{ user?.role_id === 1 ? 'Admin' : 'User' }}</div>
+            </div>
+          </div>
+        </div>
+        <div class="dropdown-divider"></div>
+        <a href="" 
+           onclick="return false;" 
+           (click)="navigateProfile(); closeDropdown()"
+           role="menuitem"
+           class="dropdown-item">
+          <span class="dropdown-icon">👤</span>
+          <span>Profile</span>
+        </a>
+        @if(user && user.role_id==1) {
+          <a href="/add-product" 
+             (click)="closeDropdown()" 
+             role="menuitem"
+             class="dropdown-item">
+            <span class="dropdown-icon">➕</span>
+            <span>Add Product</span>
+          </a>
+          <a href="/add-account" 
+             (click)="closeDropdown()" 
+             role="menuitem"
+             class="dropdown-item">
+            <span class="dropdown-icon">👥</span>
+            <span>Add Account</span>
+          </a>
+        }  
+        <a href="" 
+           onclick="return false;" 
+           (click)="navigateDevices(); closeDropdown()"
+           role="menuitem"
+           class="dropdown-item">
+          <span class="dropdown-icon">📱</span>
+          <span>Devices</span>          
+        </a>
+        <div class="dropdown-divider"></div>
+        <a href="" 
+           onclick="return false;" 
+           (click)="signOut(); closeDropdown()"
+           role="menuitem"
+           class="dropdown-item dropdown-item-danger">
+          <span class="dropdown-icon">🚪</span>
+          <span>Sign Out</span>
+        </a>
+      </div>
     </div>
   </div>
 </header>

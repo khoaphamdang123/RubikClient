@@ -30,15 +30,24 @@ $shadow-xl: 0 16px 48px rgba(0, 83, 161, 0.15);
   width: 100%;
   max-width: 1600px;
   margin: 0 auto;
-  padding: 0 1rem;
+  padding: 70px 1rem 0; // Account for fixed header (top, horizontal, bottom)
   background: linear-gradient(180deg, $bg-white 0%, $bg-light 100%);
 
+  // Match header heights at different breakpoints
+  @media (max-width: 640px) {
+    padding-top: 68px; // Smaller header on very small screens
+  }
+
+  @media (min-width: 480px) and (max-width: 767px) {
+    padding-top: 72px;
+  }
+
   @media (min-width: 768px) {
-    padding: 0 2rem;
+    padding: 76px 2rem 0;
   }
 
   @media (min-width: 1024px) {
-    padding: 0 3rem;
+    padding: 76px 3rem 0;
   }
 }
 
@@ -835,10 +844,574 @@ $shadow-xl: 0 16px 48px rgba(0, 83, 161, 0.15);
 // FLAT VIEW
 // ============================================
 .flat-view-container {
-  overflow-x: auto;
+  overflow: auto;
+  transition: padding 0.3s ease, min-height 0.3s ease;
+  display: flex;
+  flex-direction: column;
   
   @media (max-width: 768px) {
     padding: 1rem;
+  }
+}
+
+// Hide scrollbars during flat-view transition
+.flat-view-container:has(.rubik-flat-cube.transitioning-from-cube) {
+  // Keep within bounds; we will scale-to-fit in TS
+  overflow: hidden;
+}
+
+// Temporarily expand the card so the flat cube has more room during transition/flat mode
+.flat-view-container.flat-expanded {
+  padding: 3rem;
+  min-height: clamp(560px, 80vh, 1000px);
+
+  @media (max-width: 768px) {
+    padding: 1.5rem;
+    min-height: clamp(480px, 70vh, 900px);
+  }
+}
+
+// Make the flat view region consume available space and center its content
+.flat-view-container .rubik-flat-view {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// ============================================
+// 3D TRANSITION ANIMATIONS
+// ============================================
+
+// Cube to Flat Transition (Unfolding)
+.rubik-cube.transitioning-from-flat {
+  transform-style: preserve-3d;
+  
+  .rubik-face {
+    transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  // Start from flat positions, animate to cube positions
+  .front {
+    animation: foldToCubeFront 1.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+  
+  .back {
+    animation: foldToCubeBack 1.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+  
+  .top {
+    animation: foldToCubeTop 1.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+  
+  .bottom {
+    animation: foldToCubeBottom 1.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+  
+  .left {
+    animation: foldToCubeLeft 1.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+  
+  .right {
+    animation: foldToCubeRight 1.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+}
+
+// Flat to Cube Transition (Folding)
+.rubik-flat-cube.transitioning-from-cube {
+  perspective: 1000px;
+  transform-style: preserve-3d;
+  position: relative;
+  width: 300px;
+  height: 300px;
+  margin: 0 auto;
+  transform: scale(0.9);
+  transform-origin: center center;
+  
+  @media (max-width: 1200px) {
+    width: 250px;
+    height: 250px;
+    transform: scale(0.9);
+  }
+  
+  @media (max-width: 768px) {
+    width: 180px;
+    height: 180px;
+    transform: scale(0.92);
+  }
+  
+  @media (max-width: 640px) {
+    width: 120px;
+    height: 120px;
+    transform: scale(0.95);
+  }
+  
+  .row {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform-style: preserve-3d;
+    transform: translate(-50%, -50%);
+  }
+  
+  .rubik-flat-face {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    margin: 0 !important;
+    transform-style: preserve-3d;
+    transform-origin: center center;
+    animation-duration: 1.2s;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    animation-fill-mode: forwards;
+  }
+  
+  // Start from cube positions, animate to flat positions
+  .front-flat {
+    animation-name: unfoldFromCubeFront;
+  }
+  
+  .back-flat {
+    animation-name: unfoldFromCubeBack;
+  }
+  
+  .top-flat {
+    animation-name: unfoldFromCubeTop;
+  }
+  
+  .bottom-flat {
+    animation-name: unfoldFromCubeBottom;
+  }
+  
+  .left-flat {
+    animation-name: unfoldFromCubeLeft;
+  }
+  
+  .right-flat {
+    animation-name: unfoldFromCubeRight;
+  }
+}
+
+// Keyframes for folding (flat to cube)
+@keyframes foldToCubeFront {
+  from {
+    transform: translateZ(0) translateX(0) translateY(0) rotateX(0deg) rotateY(0deg);
+  }
+  to {
+    transform: translateZ(150px);
+  }
+}
+
+@keyframes foldToCubeBack {
+  from {
+    transform: translateZ(0) translateX(600px) translateY(0) rotateX(0deg) rotateY(0deg);
+  }
+  to {
+    transform: rotateY(180deg) translateZ(150px);
+  }
+}
+
+@keyframes foldToCubeTop {
+  from {
+    transform: translateZ(0) translateX(0) translateY(-300px) rotateX(0deg) rotateY(0deg);
+  }
+  to {
+    transform: rotateX(90deg) translateZ(150px);
+  }
+}
+
+@keyframes foldToCubeBottom {
+  from {
+    transform: translateZ(0) translateX(0) translateY(300px) rotateX(0deg) rotateY(0deg);
+  }
+  to {
+    transform: rotateX(-90deg) translateZ(150px);
+  }
+}
+
+@keyframes foldToCubeLeft {
+  from {
+    transform: translateZ(0) translateX(-300px) translateY(0) rotateX(0deg) rotateY(0deg);
+  }
+  to {
+    transform: rotateY(-90deg) translateZ(150px);
+  }
+}
+
+@keyframes foldToCubeRight {
+  from {
+    transform: translateZ(0) translateX(300px) translateY(0) rotateX(0deg) rotateY(0deg);
+  }
+  to {
+    transform: rotateY(90deg) translateZ(150px);
+  }
+}
+
+// Keyframes for unfolding (cube to flat)
+@keyframes unfoldFromCubeFront {
+  from {
+    transform: translate(-50%, -50%) translateZ(150px) scale(0.85);
+  }
+  to {
+    transform: translate(-50%, -50%) translateZ(0) translateX(0) translateY(0) rotateX(0deg) rotateY(0deg) scale(1);
+  }
+}
+
+@keyframes unfoldFromCubeBack {
+  from {
+    transform: translate(-50%, -50%) rotateY(180deg) translateZ(150px) scale(0.85);
+  }
+  to {
+    transform: translate(-50%, -50%) translateZ(0) translateX(600px) translateY(0) rotateX(0deg) rotateY(0deg) scale(1);
+  }
+}
+
+@keyframes unfoldFromCubeTop {
+  from {
+    transform: translate(-50%, -50%) rotateX(90deg) translateZ(150px) scale(0.85);
+  }
+  to {
+    transform: translate(-50%, -50%) translateZ(0) translateX(0) translateY(-300px) rotateX(0deg) rotateY(0deg) scale(1);
+  }
+}
+
+@keyframes unfoldFromCubeBottom {
+  from {
+    transform: translate(-50%, -50%) rotateX(-90deg) translateZ(150px) scale(0.85);
+  }
+  to {
+    transform: translate(-50%, -50%) translateZ(0) translateX(0) translateY(300px) rotateX(0deg) rotateY(0deg) scale(1);
+  }
+}
+
+@keyframes unfoldFromCubeLeft {
+  from {
+    transform: translate(-50%, -50%) rotateY(-90deg) translateZ(150px) scale(0.85);
+  }
+  to {
+    transform: translate(-50%, -50%) translateZ(0) translateX(-300px) translateY(0) rotateX(0deg) rotateY(0deg) scale(1);
+  }
+}
+
+@keyframes unfoldFromCubeRight {
+  from {
+    transform: translate(-50%, -50%) rotateY(90deg) translateZ(150px) scale(0.85);
+  }
+  to {
+    transform: translate(-50%, -50%) translateZ(0) translateX(300px) translateY(0) rotateX(0deg) rotateY(0deg) scale(1);
+  }
+}
+
+// Responsive adjustments for transitions
+@media (max-width: 1200px) {
+  @keyframes foldToCubeBack {
+    from {
+      transform: translateZ(0) translateX(500px) translateY(0) rotateX(0deg) rotateY(0deg);
+    }
+    to {
+      transform: rotateY(180deg) translateZ(125px);
+    }
+  }
+  
+  @keyframes foldToCubeTop {
+    from {
+      transform: translateZ(0) translateX(0) translateY(-250px) rotateX(0deg) rotateY(0deg);
+    }
+    to {
+      transform: rotateX(90deg) translateZ(125px);
+    }
+  }
+  
+  @keyframes foldToCubeBottom {
+    from {
+      transform: translateZ(0) translateX(0) translateY(250px) rotateX(0deg) rotateY(0deg);
+    }
+    to {
+      transform: rotateX(-90deg) translateZ(125px);
+    }
+  }
+  
+  @keyframes foldToCubeLeft {
+    from {
+      transform: translateZ(0) translateX(-250px) translateY(0) rotateX(0deg) rotateY(0deg);
+    }
+    to {
+      transform: rotateY(-90deg) translateZ(125px);
+    }
+  }
+  
+  @keyframes foldToCubeRight {
+    from {
+      transform: translateZ(0) translateX(250px) translateY(0) rotateX(0deg) rotateY(0deg);
+    }
+    to {
+      transform: rotateY(90deg) translateZ(125px);
+    }
+  }
+  
+  @keyframes unfoldFromCubeBack {
+    from {
+      transform: translate(-50%, -50%) rotateY(180deg) translateZ(125px);
+    }
+    to {
+      transform: translate(-50%, -50%) translateZ(0) translateX(500px) translateY(0) rotateX(0deg) rotateY(0deg);
+    }
+  }
+  
+  @keyframes unfoldFromCubeTop {
+    from {
+      transform: translate(-50%, -50%) rotateX(90deg) translateZ(125px);
+    }
+    to {
+      transform: translate(-50%, -50%) translateZ(0) translateX(0) translateY(-250px) rotateX(0deg) rotateY(0deg);
+    }
+  }
+  
+  @keyframes unfoldFromCubeBottom {
+    from {
+      transform: translate(-50%, -50%) rotateX(-90deg) translateZ(125px);
+    }
+    to {
+      transform: translate(-50%, -50%) translateZ(0) translateX(0) translateY(250px) rotateX(0deg) rotateY(0deg);
+    }
+  }
+  
+  @keyframes unfoldFromCubeLeft {
+    from {
+      transform: translate(-50%, -50%) rotateY(-90deg) translateZ(125px);
+    }
+    to {
+      transform: translate(-50%, -50%) translateZ(0) translateX(-250px) translateY(0) rotateX(0deg) rotateY(0deg);
+    }
+  }
+  
+  @keyframes unfoldFromCubeRight {
+    from {
+      transform: translate(-50%, -50%) rotateY(90deg) translateZ(125px);
+    }
+    to {
+      transform: translate(-50%, -50%) translateZ(0) translateX(250px) translateY(0) rotateX(0deg) rotateY(0deg);
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  @keyframes foldToCubeFront {
+    from {
+      transform: translateZ(0) translateX(0) translateY(0) rotateX(0deg) rotateY(0deg);
+    }
+    to {
+      transform: translateZ(125px);
+    }
+  }
+  
+  @keyframes foldToCubeBack {
+    from {
+      transform: translateZ(0) translateX(360px) translateY(0) rotateX(0deg) rotateY(0deg);
+    }
+    to {
+      transform: rotateY(180deg) translateZ(125px);
+    }
+  }
+  
+  @keyframes foldToCubeTop {
+    from {
+      transform: translateZ(0) translateX(0) translateY(-180px) rotateX(0deg) rotateY(0deg);
+    }
+    to {
+      transform: rotateX(90deg) translateZ(125px);
+    }
+  }
+  
+  @keyframes foldToCubeBottom {
+    from {
+      transform: translateZ(0) translateX(0) translateY(180px) rotateX(0deg) rotateY(0deg);
+    }
+    to {
+      transform: rotateX(-90deg) translateZ(125px);
+    }
+  }
+  
+  @keyframes foldToCubeLeft {
+    from {
+      transform: translateZ(0) translateX(-180px) translateY(0) rotateX(0deg) rotateY(0deg);
+    }
+    to {
+      transform: rotateY(-90deg) translateZ(125px);
+    }
+  }
+  
+  @keyframes foldToCubeRight {
+    from {
+      transform: translateZ(0) translateX(180px) translateY(0) rotateX(0deg) rotateY(0deg);
+    }
+    to {
+      transform: rotateY(90deg) translateZ(125px);
+    }
+  }
+  
+  @keyframes unfoldFromCubeFront {
+    from {
+      transform: translate(-50%, -50%) translateZ(125px) scale(0.875);
+    }
+    to {
+      transform: translate(-50%, -50%) translateZ(0) translateX(0) translateY(0) rotateX(0deg) rotateY(0deg) scale(1);
+    }
+  }
+  
+  @keyframes unfoldFromCubeBack {
+    from {
+      transform: translate(-50%, -50%) rotateY(180deg) translateZ(125px) scale(0.875);
+    }
+    to {
+      transform: translate(-50%, -50%) translateZ(0) translateX(360px) translateY(0) rotateX(0deg) rotateY(0deg) scale(1);
+    }
+  }
+  
+  @keyframes unfoldFromCubeTop {
+    from {
+      transform: translate(-50%, -50%) rotateX(90deg) translateZ(125px) scale(0.875);
+    }
+    to {
+      transform: translate(-50%, -50%) translateZ(0) translateX(0) translateY(-180px) rotateX(0deg) rotateY(0deg) scale(1);
+    }
+  }
+  
+  @keyframes unfoldFromCubeBottom {
+    from {
+      transform: translate(-50%, -50%) rotateX(-90deg) translateZ(125px) scale(0.875);
+    }
+    to {
+      transform: translate(-50%, -50%) translateZ(0) translateX(0) translateY(180px) rotateX(0deg) rotateY(0deg) scale(1);
+    }
+  }
+  
+  @keyframes unfoldFromCubeLeft {
+    from {
+      transform: translate(-50%, -50%) rotateY(-90deg) translateZ(125px) scale(0.875);
+    }
+    to {
+      transform: translate(-50%, -50%) translateZ(0) translateX(-180px) translateY(0) rotateX(0deg) rotateY(0deg) scale(1);
+    }
+  }
+  
+  @keyframes unfoldFromCubeRight {
+    from {
+      transform: translate(-50%, -50%) rotateY(90deg) translateZ(125px) scale(0.875);
+    }
+    to {
+      transform: translate(-50%, -50%) translateZ(0) translateX(180px) translateY(0) rotateX(0deg) rotateY(0deg) scale(1);
+    }
+  }
+}
+
+@media (max-width: 640px) {
+  @keyframes foldToCubeFront {
+    from {
+      transform: translateZ(0) translateX(0) translateY(0) rotateX(0deg) rotateY(0deg);
+    }
+    to {
+      transform: translateZ(100px);
+    }
+  }
+  
+  @keyframes foldToCubeBack {
+    from {
+      transform: translateZ(0) translateX(240px) translateY(0) rotateX(0deg) rotateY(0deg);
+    }
+    to {
+      transform: rotateY(180deg) translateZ(100px);
+    }
+  }
+  
+  @keyframes foldToCubeTop {
+    from {
+      transform: translateZ(0) translateX(0) translateY(-120px) rotateX(0deg) rotateY(0deg);
+    }
+    to {
+      transform: rotateX(90deg) translateZ(100px);
+    }
+  }
+  
+  @keyframes foldToCubeBottom {
+    from {
+      transform: translateZ(0) translateX(0) translateY(120px) rotateX(0deg) rotateY(0deg);
+    }
+    to {
+      transform: rotateX(-90deg) translateZ(100px);
+    }
+  }
+  
+  @keyframes foldToCubeLeft {
+    from {
+      transform: translateZ(0) translateX(-120px) translateY(0) rotateX(0deg) rotateY(0deg);
+    }
+    to {
+      transform: rotateY(-90deg) translateZ(100px);
+    }
+  }
+  
+  @keyframes foldToCubeRight {
+    from {
+      transform: translateZ(0) translateX(120px) translateY(0) rotateX(0deg) rotateY(0deg);
+    }
+    to {
+      transform: rotateY(90deg) translateZ(100px);
+    }
+  }
+  
+  @keyframes unfoldFromCubeFront {
+    from {
+      transform: translate(-50%, -50%) translateZ(100px) scale(0.9);
+    }
+    to {
+      transform: translate(-50%, -50%) translateZ(0) translateX(0) translateY(0) rotateX(0deg) rotateY(0deg) scale(1);
+    }
+  }
+  
+  @keyframes unfoldFromCubeBack {
+    from {
+      transform: translate(-50%, -50%) rotateY(180deg) translateZ(100px) scale(0.9);
+    }
+    to {
+      transform: translate(-50%, -50%) translateZ(0) translateX(240px) translateY(0) rotateX(0deg) rotateY(0deg) scale(1);
+    }
+  }
+  
+  @keyframes unfoldFromCubeTop {
+    from {
+      transform: translate(-50%, -50%) rotateX(90deg) translateZ(100px) scale(0.9);
+    }
+    to {
+      transform: translate(-50%, -50%) translateZ(0) translateX(0) translateY(-120px) rotateX(0deg) rotateY(0deg) scale(1);
+    }
+  }
+  
+  @keyframes unfoldFromCubeBottom {
+    from {
+      transform: translate(-50%, -50%) rotateX(-90deg) translateZ(100px) scale(0.9);
+    }
+    to {
+      transform: translate(-50%, -50%) translateZ(0) translateX(0) translateY(120px) rotateX(0deg) rotateY(0deg) scale(1);
+    }
+  }
+  
+  @keyframes unfoldFromCubeLeft {
+    from {
+      transform: translate(-50%, -50%) rotateY(-90deg) translateZ(100px) scale(0.9);
+    }
+    to {
+      transform: translate(-50%, -50%) translateZ(0) translateX(-120px) translateY(0) rotateX(0deg) rotateY(0deg) scale(1);
+    }
+  }
+  
+  @keyframes unfoldFromCubeRight {
+    from {
+      transform: translate(-50%, -50%) rotateY(90deg) translateZ(100px) scale(0.9);
+    }
+    to {
+      transform: translate(-50%, -50%) translateZ(0) translateX(120px) translateY(0) rotateX(0deg) rotateY(0deg) scale(1);
+    }
   }
 }
 
@@ -882,8 +1455,8 @@ $shadow-xl: 0 16px 48px rgba(0, 83, 161, 0.15);
   }
 
   @media (max-width: 640px) {
-    width: 120px;
-    height: 120px;
+    width: 200px;
+    height: 200px;
   }
 }
 
@@ -899,7 +1472,7 @@ $shadow-xl: 0 16px 48px rgba(0, 83, 161, 0.15);
   }
 
   @media (max-width: 640px) {
-    margin-left: 120px;
+    margin-left: 200px;
   }
 }
 
@@ -915,7 +1488,7 @@ $shadow-xl: 0 16px 48px rgba(0, 83, 161, 0.15);
   }
 
   @media (max-width: 640px) {
-    margin-left: 120px;
+    margin-left: 200px;
   }
 }
 

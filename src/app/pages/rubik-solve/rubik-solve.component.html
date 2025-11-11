@@ -103,7 +103,10 @@
             </div>
         </div>
         <div class="rubik-view" (mousedown)="startRotate($event)" (mouseup)="stopRotate()">
-            <div class="rubik-cube" [class.no-transition]="isDragging && !isButtonRotating" [style.transform]="cubeRotateStyle">    
+            <div class="rubik-cube" 
+                 [class.no-transition]="isDragging && !isButtonRotating" 
+                 [class.transitioning-from-flat]="transitioningToCube"
+                 [style.transform]="cubeRotateStyle">    
         <div class="rubik-face front">
           <button class="block front-color" data-field="19" id="19" (click)="changeBlockColor($event)" [style.background-color]="rubik_block_color[18]"></button>
           <button class="block front-color" data-field="20" id="20" (click)="changeBlockColor($event)" [style.background-color]="rubik_block_color[19]"></button>
@@ -137,7 +140,6 @@
             <button class="block top-color" data-field="7" id="7" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[6]"></button>
             <button class="block top-color" data-field="8" id="8" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[7]"></button>
             <button class="block top-color" data-field="9" id="9" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[8]"></button>
-
           </div>
           <div class="rubik-face bottom">
             <button class="block bottom-color" data-field="46" id="46" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[45]"></button>
@@ -207,7 +209,7 @@
    @else
    {
     <!-- Flat View Card -->
-    <section class="cube-container-card flat-view-container">
+    <section class="cube-container-card flat-view-container" #flatContainer3x3 [class.flat-expanded]="transitioningToFlat || !isShowThreeD">
         <div class="cube-card-header">
             <h3 class="cube-card-title">Flat Cube Layout</h3>
             <div class="cube-card-badge">
@@ -216,7 +218,7 @@
             </div>
         </div>
         <div class="rubik-flat-view">      
-            <div class="rubik-flat-cube">
+            <div class="rubik-flat-cube" #flatCube3x3 [class.transitioning-from-cube]="transitioningToFlat">
                 <div class="row">
           <div class="rubik-flat-face top-flat">
             <button class="block top-color" data-field="1" id="1" (click)="changeBlockColor($event)"  [style.background-color]="rubik_block_color[0]"></button>
@@ -427,7 +429,10 @@
            </div>
        </div>
        <div class="rubik-view" (mousedown)="startRotate($event)" (mouseup)="stopRotate()">
-           <div class="rubik-cube" [class.no-transition]="isDragging && !isButtonRotating" [style.transform]="cubeRotateStyle">    
+           <div class="rubik-cube" 
+                [class.no-transition]="isDragging && !isButtonRotating" 
+                [class.transitioning-from-flat]="transitioningToCube"
+                [style.transform]="cubeRotateStyle">    
        <div class="rubik-face front">
          <button class="block_2x2 front-color" data-field="9" id="9" (click)="changeBlockColor($event)" [style.background-color]="rubik_2x2_block_color[8]">F</button>
          <button class="block_2x2  front-color" data-field="10" id="10" (click)="changeBlockColor($event)" [style.background-color]="rubik_2x2_block_color[9]"></button>
@@ -499,7 +504,7 @@
   @else
   {
    <!-- Flat View Card -->
-   <section class="cube-container-card flat-view-container">
+   <section class="cube-container-card flat-view-container" #flatContainer2x2 [class.flat-expanded]="transitioningToFlat || !isShowThreeD">
        <div class="cube-card-header">
            <h3 class="cube-card-title">Flat Cube Layout (2x2)</h3>
            <div class="cube-card-badge">
@@ -508,7 +513,7 @@
            </div>
        </div>
        <div class="rubik-flat-view">      
-           <div class="rubik-flat-cube">
+           <div class="rubik-flat-cube" #flatCube2x2 [class.transitioning-from-cube]="transitioningToFlat">
                <div class="row">
          <div class="rubik-flat-face top-flat">
            <button class="block_2x2 top-color" data-field="1" id="1" (click)="changeBlockColor($event)"  [style.background-color]="rubik_2x2_block_color[0]">T</button>

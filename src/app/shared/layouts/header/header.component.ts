@@ -1,22 +1,24 @@
 import { Component, OnInit, ElementRef, ViewChild, AfterViewInit, OnDestroy, HostListener } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [],
+  imports: [RouterModule],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss'
 })
 export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy
 { 
-  avatar=localStorage.getItem("AVATAR");
-  user=JSON.parse(localStorage.getItem("ACCOUNT") as string);
+  avatar = localStorage.getItem("AVATAR");
+  user: any = null;
   isMobileMenuOpen = false;
   isDropdownOpen = false;
   dropdownPosition = { top: '0px', right: '0px' };
 
   @ViewChild('dropdownButton', { static: false }) dropdownButton!: ElementRef;
   @ViewChild('dropdownContent', { static: false }) dropdownContent!: ElementRef;
+  @ViewChild('mobileMenuBtn', { static: false }) mobileMenuBtn!: ElementRef;
+  @ViewChild('mobileMenu', { static: false }) mobileMenu!: ElementRef;
 
   private resizeListener?: () => void;
 
@@ -25,6 +27,15 @@ export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy
   }
   ngOnInit(): void 
   {
+    try {
+      const accountData = localStorage.getItem("ACCOUNT");
+      if (accountData) {
+        this.user = JSON.parse(accountData);
+      }
+    } catch (error) {
+      console.error('Error parsing user account data:', error);
+      this.user = null;      
+    }
   }
 
   ngAfterViewInit(): void {
@@ -36,6 +47,10 @@ export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy
     this.resizeListener = () => {
       if (this.isDropdownOpen) {
         this.calculateDropdownPosition();
+      }
+      // Close mobile menu when resizing to desktop
+      if (window.innerWidth >= 768 && this.isMobileMenuOpen) {
+        this.closeMobileMenu();
       }
     };
     window.addEventListener('resize', this.resizeListener);
@@ -56,15 +71,25 @@ export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy
       };
     }
   }
-
+ 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {
+    // Close dropdown if clicking outside
     if (this.isDropdownOpen && 
         this.dropdownButton?.nativeElement && 
         !this.dropdownButton.nativeElement.contains(event.target as Node) &&
         this.dropdownContent?.nativeElement &&
         !this.dropdownContent.nativeElement.contains(event.target as Node)) {
       this.closeDropdown();
+    }
+    
+    // Close mobile menu if clicking outside (only on mobile)
+    if (window.innerWidth < 768 && this.isMobileMenuOpen &&
+        this.mobileMenuBtn?.nativeElement &&
+        !this.mobileMenuBtn.nativeElement.contains(event.target as Node) &&
+        this.mobileMenu?.nativeElement &&
+        !this.mobileMenu.nativeElement.contains(event.target as Node)) {
+      this.closeMobileMenu();
     }
   }
 
@@ -86,8 +111,9 @@ export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy
       setTimeout(() => this.calculateDropdownPosition(), 0);
     }
   }
-
-  closeDropdown() {
+  
+  closeDropdown() 
+  {
     this.isDropdownOpen = false;
   }
 
@@ -96,22 +122,26 @@ export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy
     localStorage.removeItem("TOKEN");
     this.closeDropdown();
     this.closeMobileMenu();
-    this.router.navigate(["/login"]);
+    this.router.navigate(["/login"]);    
   }
   
   navigateProfile()
   {
-    var route=`/profile/${this.user.username}`;
-    this.closeDropdown();
-    this.closeMobileMenu();
-    this.router.navigate([route]);
+    if (this.user?.username) {
+      const route = `/profile/${this.user.username}`;
+      this.closeDropdown();      
+      this.closeMobileMenu();      
+      this.router.navigate([route]);      
+    }
   }
 
   navigateDevices()
   {
-    var route = `/device/${this.user.username}`;
-    this.closeDropdown();
-    this.closeMobileMenu();
-    this.router.navigate([route]);
+    if (this.user?.username) {
+      const route = `/device/${this.user.username}`;
+      this.closeDropdown();
+      this.closeMobileMenu();
+      this.router.navigate([route]);      
+    }
   }
 }

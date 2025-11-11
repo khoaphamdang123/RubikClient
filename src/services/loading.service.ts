@@ -14,6 +14,6 @@ export class LoadingService {
     }
     hide()
     { 
-      this.loadingObject.next(false);
+      this.loadingObject.next(false);                        
     }
   }
