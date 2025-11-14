@@ -122,7 +122,7 @@ export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy
     localStorage.removeItem("TOKEN");
     this.closeDropdown();
     this.closeMobileMenu();
-    this.router.navigate(["/login"]);    
+    this.router.navigate(["/admin/login"]);    
   }
   
   navigateProfile()
