@@ -115,6 +115,14 @@
           <span>Profile</span>
         </a>
         @if(user && user.role_id==1) {
+          <a href="" 
+             onclick="return false;"
+             (click)="navigateAdmin(); closeDropdown()" 
+             role="menuitem"
+             class="dropdown-item">
+            <span class="dropdown-icon">⚙️</span>
+            <span>Admin Panel</span>
+          </a>
           <a href="/add-product" 
              (click)="closeDropdown()" 
              role="menuitem"

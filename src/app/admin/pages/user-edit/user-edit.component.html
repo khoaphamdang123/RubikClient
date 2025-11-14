@@ -1,0 +1,259 @@
+<div class="user-edit-shell">
+  <div class="page-header glass">
+    <div class="breadcrumbs">
+      <button type="button" class="back-link" (click)="goBack()">← Back to users</button>
+      <span>/</span>
+      <span>Edit user</span>
+    </div>
+    <div class="header-main">
+      <div>
+        <p class="eyebrow">User management</p>
+        <h1>Edit {{ userData?.username || 'user' }}</h1>
+        <p>Review account details, adjust roles, and keep this profile up to date.</p>
+        <div class="quick-meta">
+          <div>
+            <span>User ID</span>
+            <strong>{{ userData?._id || '—' }}</strong>
+          </div>
+          <div>
+            <span>Current role</span>
+            <strong>{{ userData?.role || userForm.value.role || 'Role pending' }}</strong>
+          </div>
+          <div>
+            <span>Last sync</span>
+            <strong>{{ lastSyncedAt ? (lastSyncedAt | date: 'short') : 'Just now' }}</strong>
+          </div>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button
+          type="button"
+          class="btn ghost"
+          (click)="resetChanges()"
+          [disabled]="disableReset">
+          Reset
+        </button>
+        <button
+          type="button"
+          class="btn primary"
+          (click)="saveChanges()"
+          [disabled]="disableSave">
+          <span *ngIf="!isSaving">Save changes</span>
+          <span *ngIf="isSaving">Saving…</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="isLoading" class="state-card glass">
+    <div class="loader"></div>
+    <p>Loading user details…</p>
+  </div>
+
+  <div *ngIf="loadError && !isLoading" class="state-card glass error">
+    <p>{{ loadError }}</p>
+    <button type="button" class="btn primary" (click)="fetchUser()">Try again</button>
+  </div>
+
+  <div *ngIf="!isLoading && !loadError" class="content-grid">
+    <div class="server-summary glass" *ngIf="serverMessage">
+      <div>
+        <p class="eyebrow">Server response</p>
+        <h2>{{ serverMessage }}</h2>
+        <p>The latest snapshot was pulled from the admin API.</p>
+      </div>
+      <div class="server-meta">
+        <div>
+          <span>Last sync</span>
+          <strong>{{ lastSyncedAt ? (lastSyncedAt | date: 'medium') : 'Just now' }}</strong>
+        </div>
+        <div>
+          <span>Role</span>
+          <strong>{{ userData?.role || 'Unknown' }}</strong>
+        </div>
+      </div>
+    </div>
+    <section class="form-panel glass">
+      <form [formGroup]="userForm" (ngSubmit)="saveChanges()" novalidate>
+        <div class="form-section">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Profile</p>
+              <h2>Basic information</h2>
+              <p>Visible across the admin and client experiences.</p>
+            </div>
+          </div>
+          <div class="field-grid two">
+            <label class="form-field">
+              <span>Username</span>
+              <input type="text" formControlName="username" placeholder="Enter username" />
+              <small *ngIf="controlInvalid('username')">
+                Username is required and must be at least 3 characters.
+              </small>
+            </label>
+
+            <label class="form-field">
+              <span>Email address</span>
+              <input type="email" formControlName="email" placeholder="name@domain.com" />
+              <small *ngIf="controlInvalid('email')">Provide a valid email address.</small>
+            </label>
+          </div>
+
+          <div class="field-grid two">
+            <label class="form-field">
+              <span>Gender</span>
+              <select formControlName="gender">
+                <option value="">Select gender</option>
+                <option *ngFor="let gender of genderOptions" [value]="gender">{{ gender }}</option>
+              </select>
+            </label>
+
+            <label class="form-field">
+              <span>Avatar URL</span>
+              <input
+                type="url"
+                formControlName="avatar"
+                placeholder="https://…"
+                (input)="onAvatarUrlInput()" />
+              <small>Paste a hosted image if you manage avatars elsewhere.</small>
+            </label>
+          </div>
+
+          <div class="avatar-designer glass">
+            <div class="avatar-designer-head">
+              <div>
+                <p class="eyebrow">Profile photo</p>
+                <h3>Update avatar</h3>
+                <p>Drag in a new image or browse your device. We’ll preview it instantly.</p>
+              </div>
+              <button
+                type="button"
+                class="btn outline"
+                (click)="openAvatarPicker(avatarInput)">
+                Upload from device
+              </button>
+            </div>
+            <input
+              type="file"
+              #avatarInput
+              id="avatarInput"
+              accept="image/*"
+              (change)="onAvatarFileChange($event)"
+              hidden />
+            <label
+              class="upload-drop"
+              [class.active]="isAvatarDropActive"
+              [class.error]="avatarUploadError"
+              for="avatarInput"
+              role="button"
+              tabindex="0"
+              (dragenter)="onAvatarDragEnter($event)"
+              (dragover)="onAvatarDragOver($event)"
+              (dragleave)="onAvatarDragLeave($event)"
+              (drop)="onAvatarDrop($event)">
+              <div class="upload-preview">
+                <img [src]="avatarPreview" alt="User avatar preview" (error)="onAvatarError($event)" />
+              </div>
+              <div class="upload-copy">
+                <strong>Drop an image or click to browse</strong>
+                <p>PNG, JPG or WEBP · up to {{ maxAvatarSizeMb }} MB</p>
+                <span class="file-name" *ngIf="avatarFileName">Selected: {{ avatarFileName }}</span>
+              </div>
+            </label>
+            <div class="upload-controls">
+              <button type="button" class="btn ghost" (click)="clearAvatarSelection()">
+                Use saved avatar
+              </button>
+              <button type="button" class="btn outline" (click)="openAvatarPicker(avatarInput)">
+                Choose another file
+              </button>
+            </div>
+            <small class="error" *ngIf="avatarUploadError">{{ avatarUploadError }}</small>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Permissions</p>
+              <h2>Role & access</h2>
+              <p>Control what this user can do inside the platform.</p>
+            </div>
+          </div>
+
+          <div class="field-grid two">
+            <label class="form-field">
+              <span>Role preset</span>
+              <select formControlName="role_id" (change)="onRoleIdChange($event)">
+                <option value="">Select role</option>
+                <option *ngFor="let role of roleOptions" [value]="role.roleId">
+                  {{ role.label }} · ID {{ role.roleId }}
+                </option>
+              </select>
+              <small *ngIf="controlInvalid('role_id')">Select a role preset.</small>
+            </label>
+
+            <label class="form-field">
+              <span>Role label</span>
+              <input type="text" formControlName="role" placeholder="Role label shown across the app" />
+              <small>Use a custom label if you added a bespoke permission set.</small>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-actions mobile">
+          <button
+            type="button"
+            class="btn ghost"
+            (click)="resetChanges()"
+            [disabled]="disableReset">
+            Reset
+          </button>
+          <button type="submit" class="btn primary" [disabled]="disableSave">
+            <span *ngIf="!isSaving">Save changes</span>
+            <span *ngIf="isSaving">Saving…</span>
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <aside class="context-panel">
+      <div class="profile-card glass">
+        <div class="avatar-ring">
+          <img [src]="avatarPreview" alt="User avatar" (error)="onAvatarError($event)" />
+        </div>
+        <h3>{{ userForm.value.username || 'Unnamed user' }}</h3>
+        <p>{{ userForm.value.email || 'No email provided' }}</p>
+        <span class="role-chip">{{ userForm.value.role || 'Role pending' }}</span>
+      </div>
+
+      <div class="meta-card glass">
+        <div class="meta-row">
+          <span>Joined</span>
+          <strong>{{ joinedDateLabel }}</strong>
+        </div>
+        <div class="meta-row">
+          <span>User ID</span>
+          <strong>{{ userData?._id || '—' }}</strong>
+        </div>
+        <div class="meta-row">
+          <span>Role ID</span>
+          <strong>{{ userForm.value.role_id || '—' }}</strong>
+        </div>
+        <button type="button" class="btn outline" (click)="refresh()">Refresh data</button>
+      </div>
+
+      <div class="danger-card glass">
+        <div>
+          <h3>Danger zone</h3>
+          <p>Deleting a user removes their access immediately.</p>
+        </div>
+        <button type="button" class="btn danger" (click)="deleteUser()" [disabled]="isDeleting">
+          <span *ngIf="!isDeleting">Delete user</span>
+          <span *ngIf="isDeleting">Deleting…</span>
+        </button>
+      </div>
+    </aside>
+  </div>
+</div>
+

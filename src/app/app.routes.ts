@@ -14,9 +14,21 @@ import { AddAccountComponent } from './pages/add-account/add-account.component';
 import { ProfileComponent } from './pages/profile/profile.component';
 import { DevicesComponent } from './pages/devices/devices.component';
 import { ImageDetectComponent } from './pages/image-detect/image-detect.component';
+import { AdminLayoutComponent } from './admin/layouts/admin-layout/admin-layout.component';
+import { DashboardComponent } from './admin/pages/dashboard/dashboard.component';
+import { UsersComponent } from './admin/pages/users/users.component';
+import { UserEditComponent } from './admin/pages/user-edit/user-edit.component';
+import { UserCreateComponent } from './admin/pages/user-create/user-create.component';
+import { ProductsComponent as AdminProductsComponent } from './admin/pages/products/products.component';
+import { CategoriesComponent } from './admin/pages/categories/categories.component';
+import { RubikSolvesComponent } from './admin/pages/rubik-solves/rubik-solves.component';
+import { AdminLoginComponent } from './admin/pages/admin-login/admin-login.component';
+import { adminGuard } from './admin/guards/admin.guard';
+
 export const routes: Routes = [
     {path:'',redirectTo:'/products',pathMatch:'full'},
     {path:'login',component:DefaulComponent,children:[{path:'',component:LoginComponent}]},
+    {path:'admin/login',component:AdminLoginComponent},
     {path:"about",component:AboutComponent},
     {path:'products',component:ProductsComponent,children:[{path:'',component:ItemsComponent}]},
     {path:'product/:slug',component:ProductDetailComponent},
@@ -29,5 +41,21 @@ export const routes: Routes = [
     {path:'profile/:username',component:ProfileComponent},
     {path:'device/:username',component:DevicesComponent},
     {path:'image-result',component:ImageDetectComponent},
+    // Admin Routes
+    {
+        path:'admin',
+        component:AdminLayoutComponent,
+        canActivate:[adminGuard],
+        children:[
+            {path:'',redirectTo:'dashboard',pathMatch:'full'},
+            {path:'dashboard',component:DashboardComponent},
+            {path:'users/create',component:UserCreateComponent},
+            {path:'users/:id/edit',component:UserEditComponent},
+            {path:'users',component:UsersComponent},
+            {path:'products',component:AdminProductsComponent},
+            {path:'categories',component:CategoriesComponent},
+            {path:'rubik-solves',component:RubikSolvesComponent}
+        ]
+    },
     {path:"**",component:NotFoundComponent}
 ];

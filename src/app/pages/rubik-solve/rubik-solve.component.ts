@@ -739,7 +739,7 @@ else if(this.rubikName==="Rubik's Apprentice 2x2")
       }
       else if(i>=9 && i<18)
       {
-        this.rubik_block_color[i]='orange';
+        this.rubik_block_color[i]='orange';        
       }
       else if(i>=18 && i<27)
       {
@@ -752,7 +752,7 @@ else if(this.rubikName==="Rubik's Apprentice 2x2")
       else if(i>=36 && i<45)
       {
         this.rubik_block_color[i]='blue';
-      }
+      } 
       else
       {
         this.rubik_block_color[i]='yellow';

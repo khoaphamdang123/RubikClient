@@ -1,0 +1,127 @@
+.products-container {
+  @apply w-full;
+}
+
+.page-header {
+  @apply mb-6;
+}
+
+.header-content {
+  @apply flex items-center justify-between mb-4;
+}
+
+.page-title {
+  @apply text-2xl font-bold text-gray-800;
+}
+
+.search-bar {
+  @apply max-w-md;
+}
+
+.loading-state {
+  @apply flex flex-col items-center justify-center py-12;
+  
+  .spinner {
+    @apply w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full;
+    animation: spin 1s linear infinite;
+  }
+  
+  p {
+    @apply mt-4 text-gray-600;
+  }
+}
+
+.products-grid {
+  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6;
+}
+
+.empty-state {
+  @apply text-center py-12 text-gray-500 col-span-full;
+}
+
+.product-card {
+  @apply bg-white rounded-lg shadow-md overflow-hidden;
+  @apply transition-all duration-200 hover:shadow-lg;
+}
+
+.product-image {
+  @apply w-full h-48 bg-gray-100 overflow-hidden;
+  
+  img {
+    @apply w-full h-full object-cover;
+  }
+}
+
+.product-info {
+  @apply p-4;
+}
+
+.product-name {
+  @apply text-lg font-semibold text-gray-800 mb-2;
+}
+
+.product-description {
+  @apply text-sm text-gray-600 mb-4 line-clamp-3;
+}
+
+.product-actions {
+  @apply flex items-center gap-2;
+}
+
+// Modal Styles (same as users component)
+.modal-overlay {
+  @apply fixed inset-0 bg-black bg-opacity-50 z-50;
+  @apply flex items-center justify-center p-4;
+}
+
+.modal-content {
+  @apply bg-white rounded-lg shadow-xl;
+  @apply w-full max-w-2xl max-h-[90vh] overflow-y-auto;
+}
+
+.modal-header {
+  @apply flex items-center justify-between p-6 border-b border-gray-200;
+}
+
+.modal-title {
+  @apply text-xl font-semibold text-gray-800;
+}
+
+.modal-close {
+  @apply text-2xl text-gray-400 hover:text-gray-600;
+  @apply w-8 h-8 flex items-center justify-center;
+  @apply transition-colors;
+}
+
+.modal-body {
+  @apply p-6 space-y-4;
+}
+
+.modal-footer {
+  @apply flex items-center justify-end gap-3 pt-4 border-t border-gray-200 mt-6;
+}
+
+textarea.form-control {
+  @apply resize-y min-h-[100px];
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .header-content {
+    @apply flex-col gap-4;
+  }
+  
+  .products-grid {
+    @apply grid-cols-1;
+  }
+}
+
+
+
+
+
+
+
+
+
+

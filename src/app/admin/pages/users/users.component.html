@@ -1,0 +1,369 @@
+<section class="users-shell">
+  <div class="loading-overlay" *ngIf="isLoading">
+    <div class="loading-card">
+      <div class="glow"></div>
+      <div class="spinner"></div>
+      <p>Loading users…</p>
+    </div>
+  </div>
+
+  <div class="users-grid" [class.dimmed]="isLoading">
+    <!-- Hero Header -->
+    <header class="users-hero">
+      <div class="hero-intro">
+        <div class="hero-badge">Client Users</div>
+        <h2>User Management</h2>
+        <p>
+          Manage and monitor all client users in your system. Search, filter, and view user details.
+        </p>
+      </div>
+      <div class="hero-actions">
+        <button
+          type="button"
+          class="action-btn primary"
+          (click)="addUser()"
+          [disabled]="isLoading">
+          <span class="action-icon">➕</span>
+          Add User
+        </button>
+        <button
+          type="button"
+          class="refresh-btn"
+          (click)="refreshUsers()"
+          [disabled]="isLoading">
+          <span class="refresh-icon" aria-hidden="true">↻</span>
+          Refresh
+        </button>
+      </div>
+    </header>
+
+    <!-- Error State -->
+    <div *ngIf="error && !isLoading" class="error-state glass">
+      <div class="error-icon">⚠️</div>
+      <h3>Error Loading Users</h3>
+      <p>{{ error }}</p>
+      <button type="button" class="refresh-btn" (click)="refreshUsers()">
+        <span class="refresh-icon" aria-hidden="true">↻</span>
+        Retry
+      </button>
+    </div>
+
+    <!-- Filters and Search -->
+    <div class="filters-section glass" *ngIf="!error">
+      <div class="filters-grid">
+        <div class="filter-group">
+          <label class="filter-label">Search Users</label>
+          <div class="search-input-wrapper">
+            <span class="search-icon">🔍</span>
+            <input
+              type="text"
+              class="search-input"
+              placeholder="Search by username or email..."
+              [(ngModel)]="searchTerm"
+              (keyup.enter)="onSearch()"
+              (blur)="onSearch()">
+            <button
+              type="button"
+              class="search-btn"
+              (click)="onSearch()"
+              [disabled]="isLoading">
+              Search
+            </button>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <label class="filter-label">Filter by Role</label>
+          <select
+            class="filter-select"
+            [(ngModel)]="selectedRole"
+            (change)="onRoleFilterChange()">
+            <option value="">All Roles</option>
+            <option *ngFor="let role of availableRoles" [value]="role">{{ role }}</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label class="filter-label">Items per Page</label>
+          <select
+            class="filter-select"
+            [(ngModel)]="pageSize"
+            (change)="onPageSizeChange()">
+            <option *ngFor="let size of pageSizeOptions" [value]="size">{{ size }}</option>
+          </select>
+        </div>
+
+        <div class="filter-group column-filter">
+          <label class="filter-label">Show/Hide Columns</label>
+          <div class="column-select" [class.open]="isColumnDropdownOpen">
+            <button
+              type="button"
+              class="column-select-trigger"
+              (click)="toggleColumnDropdown($event)"
+              [disabled]="isLoading">
+              <span class="column-select-label">{{ selectedColumnsLabel }}</span>
+              <span class="column-select-icon" aria-hidden="true">⌄</span>
+            </button>
+
+            <div
+              class="column-select-dropdown"
+              *ngIf="isColumnDropdownOpen"
+              (click)="$event.stopPropagation()">
+              <label class="column-option" *ngFor="let column of columns">
+                <input
+                  type="checkbox"
+                  [checked]="columnVisibility[column.value]"
+                  (change)="onColumnOptionToggle(column.value, $any($event.target).checked)">
+                <span>{{ column.label }}</span>
+              </label>
+
+              <button
+                type="button"
+                class="column-select-reset"
+                (click)="resetColumnSelection()">
+                Reset to defaults
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Statistics Summary -->
+    <div class="stats-summary glass" *ngIf="pagination && !error">
+      <div class="stat-item">
+        <span class="stat-label">Total Users</span>
+        <span class="stat-value">{{ pagination.totalUsers | number }}</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Current Page</span>
+        <span class="stat-value">{{ pagination.currentPage }} / {{ pagination.totalPages }}</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Showing</span>
+        <span class="stat-value">{{ users.length }} users</span>
+      </div>
+    </div>
+
+    <!-- Users Table -->
+    <div class="users-table-container" *ngIf="!error">
+      <div *ngIf="users.length === 0 && !isLoading" class="empty-state glass">
+        <div class="empty-icon">👥</div>
+        <h3>No Users Found</h3>
+        <p>No users match your current search or filter criteria.</p>
+        <button
+          type="button"
+          class="refresh-btn"
+          (click)="searchTerm = ''; selectedRole = ''; onSearch()">
+          Clear Filters
+        </button>
+      </div>
+
+      <div *ngIf="users.length > 0" class="table-wrapper glass">
+        <table class="users-table">
+          <thead>
+            <tr>
+              <th *ngIf="columnVisibility.id">ID</th>
+              <th *ngIf="columnVisibility.user">User</th>
+              <th *ngIf="columnVisibility.email">Email</th>
+              <th *ngIf="columnVisibility.role">Role</th>
+              <th *ngIf="columnVisibility.gender">Gender</th>
+              <th *ngIf="columnVisibility.joinedDate">Joined Date</th>
+              <th *ngIf="columnVisibility.actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let user of users; let i = index" class="user-row">
+              <td *ngIf="columnVisibility.id" class="id-cell" data-label="ID">{{ getRowNumber(i) }}</td>
+              <td *ngIf="columnVisibility.user" class="user-cell" data-label="User">
+                <div class="user-info">
+                  <div class="user-avatar-wrapper">
+                    <img
+                      [src]="user.avatar || 'https://gw.alipayobjects.com/zos/rmsportal/BiazfanxmamNRoxxVxka.png'"
+                      [alt]="user.username"
+                      class="user-avatar"
+                      onerror="this.src='https://gw.alipayobjects.com/zos/rmsportal/BiazfanxmamNRoxxVxka.png'">
+                    <div class="avatar-status"></div>
+                  </div>
+                  <span class="user-name">{{ user.username }}</span>
+                </div>
+              </td>
+              <td *ngIf="columnVisibility.email" class="email-cell" data-label="Email">{{ user.email }}</td>
+              <td *ngIf="columnVisibility.role" class="role-cell" data-label="Role">
+                <span class="user-role-badge" [ngClass]="getRoleBadgeClass(user.role)">
+                  {{ user.role || 'User' }}
+                </span>
+              </td>
+              <td *ngIf="columnVisibility.gender" class="gender-cell" data-label="Gender">{{ user.gender || '-' }}</td>
+              <td *ngIf="columnVisibility.joinedDate" class="date-cell" data-label="Joined Date">{{ user.created_date ? formatDate(user.created_date) : '-' }}</td>
+              <td *ngIf="columnVisibility.actions" class="actions-cell" data-label="Actions">
+                <div class="action-buttons">
+                  <button
+                    type="button"
+                    class="action-btn secondary"
+                    (click)="editUser(user)"
+                    title="Edit User">
+                    <span class="action-icon">✏️</span>
+                    <span>Edit</span>
+                  </button>
+                  <button
+                    type="button"
+                    class="action-btn danger"
+                    (click)="deleteUser(user)"
+                    title="Delete User">
+                    <span class="action-icon">🗑️</span>
+                    <span>Delete</span>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination-container glass" *ngIf="pagination && !error">
+      <div class="pagination-info">
+        <span>
+          Showing page {{ pagination.currentPage }} of {{ pagination.totalPages }}
+          ({{ pagination.totalUsers }} total users)
+        </span>
+      </div>
+      <div class="pagination-controls">
+        <button
+          type="button"
+          class="pagination-btn"
+          [disabled]="!pagination.hasPrevPage || isLoading"
+          (click)="goToPage(currentPage - 1)">
+          <span>←</span>
+          Previous
+        </button>
+
+        
+
+        <div class="pagination-numbers">
+          <button
+            *ngFor="let page of getPageNumbers()"
+            type="button"
+            class="pagination-number"
+            [class.active]="page === currentPage"
+            [class.ellipsis]="page === -1"
+            [disabled]="page === -1 || isLoading"
+            (click)="page !== -1 && goToPage(page)">
+            {{ page === -1 ? '...' : page }}
+          </button>
+        </div>
+
+        <button
+          type="button"
+          class="pagination-btn"
+          [disabled]="!pagination.hasNextPage || isLoading"
+          (click)="goToPage(currentPage + 1)">
+          Next
+          <span>→</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add User Modal -->
+  <div class="modal-backdrop" *ngIf="isAddUserModalOpen">
+    <div class="add-user-modal glass">
+      <header class="modal-header">
+        <div>
+          <p class="hero-badge">New Client</p>
+          <h3>Create User</h3>
+        </div>
+        <button class="modal-close" type="button" (click)="closeAddUserModal()" [disabled]="isCreatingUser">×</button>
+      </header>
+
+      <form [formGroup]="addUserForm" (ngSubmit)="submitNewUser()">
+        <div class="modal-body">
+          <div class="form-field">
+            <label>Username <span>*</span></label>
+            <input type="text" formControlName="username" placeholder="jane.doe" />
+            <div class="field-error" *ngIf="controlInvalid('username')">
+              {{ controlErrorMessage('username') }}
+            </div>
+          </div>
+
+          <div class="form-field">
+            <label>Password <span>*</span></label>
+            <input type="password" formControlName="password" placeholder="••••••" />
+            <div class="field-error" *ngIf="controlInvalid('password')">
+              {{ controlErrorMessage('password') }}
+            </div>
+          </div>
+
+          <div class="form-field">
+            <label>Email <span>*</span></label>
+            <input type="email" formControlName="email" placeholder="user@example.com" />
+            <div class="field-error" *ngIf="controlInvalid('email')">
+              {{ controlErrorMessage('email') }}
+            </div>
+          </div>
+
+          <div class="form-field">
+            <label>Phone <span>*</span></label>
+            <input type="tel" formControlName="phone" placeholder="+1 555 0100" />
+            <div class="field-error" *ngIf="controlInvalid('phone')">
+              {{ controlErrorMessage('phone') }}
+            </div>
+          </div>
+
+          <div class="form-field">
+            <label>Gender <span>*</span></label>
+            <select formControlName="gender">
+              <option value="">Select gender</option>
+              <option *ngFor="let gender of genderOptions" [value]="gender">{{ gender }}</option>
+            </select>
+            <div class="field-error" *ngIf="controlInvalid('gender')">
+              {{ controlErrorMessage('gender') }}
+            </div>
+          </div>
+
+          <div class="form-field">
+            <label>Role <span>*</span></label>
+            <select formControlName="role_id">
+              <option value="">Select role</option>
+              <option
+                *ngFor="let role of roleOptions"
+                [value]="role.roleId"
+                [disabled]="role.disabled">
+                {{ role.label }} {{ role.disabled ? '(Not allowed)' : '' }}
+              </option>
+            </select>
+            <div class="field-error" *ngIf="controlInvalid('role_id')">
+              {{ controlErrorMessage('role_id') }}
+            </div>
+          </div>
+
+          <div class="form-field">
+            <label>Avatar URL</label>
+            <input type="url" formControlName="avatar" placeholder="https://example.com/avatar.png" />
+          </div>
+
+          <div class="form-alert error" *ngIf="createUserError">
+            {{ createUserError }}
+          </div>
+          <div class="form-alert success" *ngIf="createUserMessage">
+            {{ createUserMessage }}
+          </div>
+        </div>
+
+        <footer class="modal-actions">
+          <button type="button" class="action-btn ghost" (click)="closeAddUserModal()" [disabled]="isCreatingUser">
+            Cancel
+          </button>
+          <button
+            type="submit"
+            class="action-btn primary"
+            [disabled]="isCreatingUser || addUserForm.invalid">
+            {{ isCreatingUser ? 'Creating...' : 'Create User' }}
+          </button>
+        </footer>
+      </form>
+    </div>
+  </div>
+</section>

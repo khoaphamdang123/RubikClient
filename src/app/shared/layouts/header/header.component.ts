@@ -144,4 +144,11 @@ export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy
       this.router.navigate([route]);      
     }
   }
+
+  navigateAdmin()
+  {
+    this.closeDropdown();
+    this.closeMobileMenu();
+    this.router.navigate(['/admin']);      
+  }
 }

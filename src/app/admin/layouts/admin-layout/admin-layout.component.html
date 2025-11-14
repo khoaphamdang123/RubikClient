@@ -1,0 +1,140 @@
+<div class="admin-layout">
+  <!-- Sidebar -->
+  <aside
+    class="admin-sidebar"
+    [class.collapsed]="!isSidebarOpen"
+    [class.mobile-open]="isMobileMenuOpen">
+    <div class="sidebar-header">
+      <div class="brand-group">
+        <div class="brand-icon">
+          <span>🧩</span>
+        </div>
+        <div class="brand-meta" *ngIf="isSidebarOpen">
+          <span class="brand-title">Rubik Control</span>
+          <span class="brand-subtitle">Admin Console</span>
+        </div>
+      </div>
+      <button
+        class="sidebar-toggle"
+        type="button"
+        (click)="toggleSidebar()"
+        aria-label="Toggle sidebar navigation">
+        <span class="toggle-icon" aria-hidden="true">
+          {{ isSidebarOpen ? '⟨' : '⟩' }}
+        </span>
+      </button>
+    </div>
+
+    <div class="sidebar-body">
+      <div class="sidebar-overview" *ngIf="isSidebarOpen">
+        <p>Manage experiences for every cuber across platforms.</p>
+      </div>
+      <nav class="sidebar-nav" aria-label="Admin sections">
+        <ul class="nav-list">
+          <li *ngFor="let item of menuItems" class="nav-item">
+            <a
+              [routerLink]="item.route"
+              routerLinkActive="active"
+              [routerLinkActiveOptions]="{ exact: false }"
+              class="nav-link"
+              (click)="closeMobileMenu()">
+              <span class="nav-icon">{{ item.icon }}</span>
+              <div class="nav-labels" *ngIf="isSidebarOpen">
+                <span class="nav-label">{{ item.label }}</span>
+                <span class="nav-caption">Go to {{ item.label | lowercase }}</span>
+              </div>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+
+    <!-- <div class="sidebar-footer">
+      <button
+        class="cta-link"
+        type="button"
+        (click)="navigateToClient()">
+        <span class="cta-icon">🏠</span>
+        <div class="cta-copy" *ngIf="isSidebarOpen">
+          <span class="cta-title">Back to site</span>
+          <span class="cta-subtitle">Explore client view</span>
+        </div>
+      </button>
+    </div> -->
+  </aside>
+
+  <!-- Main Content -->
+  <div class="admin-main" [class.sidebar-collapsed]="!isSidebarOpen">
+    <!-- Top Header -->
+    <header class="admin-header">
+      <div class="header-left">
+        <button
+          class="mobile-menu-toggle"
+          type="button"
+          (click)="toggleMobileMenu()"
+          aria-label="Toggle mobile sidebar">
+          <span class="mobile-icon">☰</span>
+        </button>
+        <div class="page-context">
+          <div class="page-pill">Admin workspace</div>
+          <h1 class="page-title">{{ getCurrentPageTitle() }}</h1>
+          <p class="page-subtitle">
+            Monitor performance, curate collections, and guide every solve journey.
+          </p>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <button
+          class="theme-toggle"
+          type="button"
+          (click)="toggleTheme()"
+          [attr.aria-label]="themeToggleLabel"
+          [attr.title]="themeToggleLabel">
+          <span class="theme-icon">{{ themeToggleIcon }}</span>
+          <span class="theme-label">{{ currentTheme | titlecase }} Mode</span>
+        </button>
+
+        <div class="user-menu" *ngIf="user">
+          <div class="user-pill">
+            <img
+              [src]="user?.avatar || 'https://gw.alipayobjects.com/zos/rmsportal/BiazfanxmamNRoxxVxka.png'"
+              [alt]="user?.username || 'User'"
+              class="user-avatar"
+              onerror="this.src='https://gw.alipayobjects.com/zos/rmsportal/BiazfanxmamNRoxxVxka.png'">
+            <div class="user-meta">
+              <span class="user-name">{{ user.username }}</span>
+              <span class="user-role">{{ user.role_id === 1 ? 'Administrator' : 'Team member' }}</span>
+            </div>
+          </div>
+          <button
+            class="logout-btn"
+            type="button"
+            (click)="signOut()"
+            aria-label="Sign out">
+            <span class="logout-icon">↥</span>
+            <span class="logout-label">Sign out</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Content Area -->
+    <main class="admin-content">
+      <div class="content-shell">
+        <router-outlet></router-outlet>
+      </div>
+    </main>
+  </div>
+
+  <!-- Mobile Overlay -->
+  <div
+    class="mobile-overlay"
+    *ngIf="isMobileMenuOpen"
+    (click)="closeMobileMenu()">
+  </div>
+</div>
+
+
+
+

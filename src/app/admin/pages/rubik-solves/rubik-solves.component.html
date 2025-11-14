@@ -1,0 +1,130 @@
+<div class="rubik-solves-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1 class="page-title">Rubik Solve Management</h1>
+    </div>
+    
+    <!-- Search Bar -->
+    <div class="search-bar">
+      <input
+        type="text"
+        class="form-control"
+        placeholder="Search by user, rubik name, or status..."
+        [(ngModel)]="searchTerm"
+        (input)="onSearch()">
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading rubik solves...</p>
+  </div>
+
+  <!-- Rubik Solves Table -->
+  <div *ngIf="!isLoading" class="table-container">
+    <div *ngIf="filteredRubikSolves.length === 0" class="empty-state">
+      <p>No rubik solve records found</p>
+    </div>
+
+    <div *ngIf="filteredRubikSolves.length > 0" class="table-wrapper">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Rubik Name</th>
+            <th>Status</th>
+            <th>Started At</th>
+            <th>Completed At</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let solve of filteredRubikSolves" class="table-row">
+            <td>
+              <div class="user-cell">
+                <img
+                  [src]="solve.user?.avatar || 'https://gw.alipayobjects.com/zos/rmsportal/BiazfanxmamNRoxxVxka.png'"
+                  [alt]="solve.user?.username"
+                  class="user-avatar"
+                  onerror="this.src='https://gw.alipayobjects.com/zos/rmsportal/BiazfanxmamNRoxxVxka.png'">
+                <span>{{ solve.user?.username || 'Unknown' }}</span>
+              </div>
+            </td>
+            <td>{{ solve.rubik_name || 'N/A' }}</td>
+            <td>
+              <span class="badge" [ngClass]="getStatusBadgeClass(solve.status)">
+                {{ solve.status || 'Unknown' }}
+              </span>
+            </td>
+            <td>{{ solve.started_at ? formatDate(solve.started_at) : 'N/A' }}</td>
+            <td>{{ solve.completed_at ? formatDate(solve.completed_at) : 'N/A' }}</td>
+            <td>
+              <div class="action-buttons">
+                <button
+                  class="btn-icon btn-sm btn-outline-primary"
+                  (click)="openDetailModal(solve)"
+                  title="View Details">
+                  👁️
+                </button>
+                <button
+                  class="btn-icon btn-sm btn-danger"
+                  (click)="deleteRubikSolve(solve)"
+                  title="Delete">
+                  🗑️
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Detail Modal -->
+  <div *ngIf="isDetailModalOpen && selectedSolve" class="modal-overlay" (click)="closeDetailModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2 class="modal-title">Rubik Solve Details</h2>
+        <button class="modal-close" (click)="closeDetailModal()">×</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="detail-section">
+          <h3 class="detail-label">User Information</h3>
+          <div class="detail-content">
+            <p><strong>Username:</strong> {{ selectedSolve.user?.username || 'N/A' }}</p>
+            <p><strong>Email:</strong> {{ selectedSolve.user?.email || 'N/A' }}</p>
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <h3 class="detail-label">Solve Information</h3>
+          <div class="detail-content">
+            <p><strong>Rubik Name:</strong> {{ selectedSolve.rubik_name || 'N/A' }}</p>
+            <p><strong>Status:</strong> 
+              <span class="badge" [ngClass]="getStatusBadgeClass(selectedSolve.status)">
+                {{ selectedSolve.status || 'Unknown' }}
+              </span>
+            </p>
+            <p><strong>Started At:</strong> {{ selectedSolve.started_at ? formatDate(selectedSolve.started_at, true) : 'N/A' }}</p>
+            <p><strong>Completed At:</strong> {{ selectedSolve.completed_at ? formatDate(selectedSolve.completed_at, true) : 'N/A' }}</p>
+          </div>
+        </div>
+
+        <div class="detail-section" *ngIf="selectedSolve.solve_data">
+          <h3 class="detail-label">Solve Data</h3>
+          <div class="detail-content">
+            <pre class="solve-data">{{ selectedSolve.solve_data | json }}</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeDetailModal()">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+

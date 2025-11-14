@@ -48,7 +48,29 @@ export class AppComponent implements OnInit {
         router.navigate(['/about']);
       }
     }
-
+    else if(e['url']=='/admin/login' || e['url'].startsWith('/admin/login'))
+    {
+      this.showHeader=false;
+      if(token!=null && token!="")
+      {
+        try {
+          const account = localStorage.getItem('ACCOUNT');
+          if(account) {
+            const user = JSON.parse(account);
+            if(user.role_id === 1 || user.role === 'Admin') {
+              router.navigate(['/admin/dashboard']);
+            }
+          }
+        } catch(e) {
+          // Invalid account data
+        }
+      }
+    }
+    else if(e['url'].startsWith('/admin'))
+    {
+      // Admin routes - hide header (admin has its own layout)
+      this.showHeader=false;
+    }
     else{
       if(e['url']=='/')
       { 

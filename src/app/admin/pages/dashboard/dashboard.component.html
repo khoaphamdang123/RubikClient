@@ -1,0 +1,228 @@
+<section class="dashboard-shell">
+  <div class="loading-overlay" *ngIf="isLoading">
+    <div class="loading-card">
+      <div class="glow"></div>
+      <div class="spinner"></div>
+      <p>Synchronizing your admin insights…</p>
+    </div>
+  </div>
+
+  <div class="dashboard-grid" [class.dimmed]="isLoading">
+    <!-- Hero -->
+    <header class="dashboard-hero">
+      <div class="hero-intro">
+        <div class="hero-badge">Admin Dashboard</div>
+        <h2>System Overview & Analytics</h2>
+        <p>
+          Comprehensive insights into users, sessions, devices, rooms, and Rubik problem statistics.
+        </p>
+      </div>
+      <div class="hero-actions">
+        <div class="refreshed-at" *ngIf="lastUpdated">
+          <span class="dot"></span>
+          Updated {{ lastUpdated | date:'shortTime' }}
+        </div>
+        <button
+          type="button"
+          class="refresh-btn"
+          (click)="refreshDashboard()"
+          [disabled]="isLoading">
+          <span class="refresh-icon" aria-hidden="true">↻</span>
+          Refresh data
+        </button>
+      </div>
+    </header>
+
+    <!-- Error State -->
+    <div *ngIf="error && !isLoading" class="error-state glass">
+      <div class="error-icon">⚠️</div>
+      <h3>Error Loading Dashboard</h3>
+      <p>{{ error }}</p>
+      <button type="button" class="refresh-btn" (click)="refreshDashboard()">
+        <span class="refresh-icon" aria-hidden="true">↻</span>
+        Retry
+      </button>
+    </div>
+
+    <!-- Main Statistics Cards -->
+    <section class="stats-grid" *ngIf="dashboardData">
+      <article
+        class="stat-card"
+        *ngFor="let card of statCards"
+        [ngClass]="card.accent">
+        <div class="stat-header">
+          <div class="stat-icon">{{ card.icon }}</div>
+          <span class="stat-badge">Live sync</span>
+        </div>
+        <div class="stat-body">
+          <span class="stat-label">{{ card.label }}</span>
+          <span class="stat-value">{{ card.value | number }}</span>
+          <span class="stat-description">{{ card.description }}</span>
+        </div>
+        <div class="stat-wave"></div>
+      </article>
+    </section>
+
+    <!-- User Breakdown Cards -->
+    <section class="stats-grid" *ngIf="dashboardData">
+      <article
+        class="stat-card"
+        *ngFor="let card of userBreakdownCards"
+        [ngClass]="card.accent">
+        <div class="stat-header">
+          <div class="stat-icon">{{ card.icon }}</div>
+          <span class="stat-badge">24h</span>
+        </div>
+        <div class="stat-body">
+          <span class="stat-label">{{ card.label }}</span>
+          <span class="stat-value">{{ card.value | number }}</span>
+          <span class="stat-description">{{ card.description }}</span>
+        </div>
+        <div class="stat-wave"></div>
+      </article>
+    </section>
+
+    <!-- Room Statistics -->
+    <section class="stats-grid" *ngIf="dashboardData && roomCards.length > 0">
+      <article
+        class="stat-card"
+        *ngFor="let card of roomCards"
+        [ngClass]="card.accent">
+        <div class="stat-header">
+          <div class="stat-icon">{{ card.icon }}</div>
+          <span class="stat-badge">Rooms</span>
+        </div>
+        <div class="stat-body">
+          <span class="stat-label">{{ card.label }}</span>
+          <span class="stat-value">{{ card.value | number }}</span>
+          <span class="stat-description">{{ card.description }}</span>
+        </div>
+        <div class="stat-wave"></div>
+      </article>
+    </section>
+
+    <!-- Detailed Statistics Panels -->
+    <section class="insight-panels" *ngIf="dashboardData">
+      <!-- User Statistics Panel -->
+      <article class="performance-card glass">
+        <header class="panel-header">
+          <div>
+            <h3>User Statistics</h3>
+            <p>Community growth and user distribution</p>
+          </div>
+          <span class="status-chip online">Active</span>
+        </header>
+
+        <div class="metric-grid">
+          <div class="metric-item">
+            <span class="metric-label">Total Users</span>
+            <span class="metric-value">{{ dashboardData.userStatistics.totalUsers | number }}</span>
+            <span class="metric-footnote">All registered accounts</span>
+          </div>
+
+          <div class="metric-item">
+            <span class="metric-label">Admin Users</span>
+            <span class="metric-value">{{ dashboardData.userStatistics.adminUsers | number }}</span>
+            <span class="metric-footnote">Administrative accounts</span>
+          </div>
+
+          <div class="metric-item">
+            <span class="metric-label">Regular Users</span>
+            <span class="metric-value">{{ dashboardData.userStatistics.regularUsers | number }}</span>
+            <span class="metric-footnote">Standard user accounts</span>
+          </div>
+
+          <div class="metric-item">
+            <span class="metric-label">Recent Registrations</span>
+            <span class="metric-value">{{ dashboardData.userStatistics.recentRegistrations | number }}</span>
+            <span class="metric-footnote">Last 24 hours</span>
+          </div>
+        </div>
+      </article>
+
+      <!-- Session Statistics Panel -->
+      <article class="performance-card glass">
+        <header class="panel-header">
+          <div>
+            <h3>Session Statistics</h3>
+            <p>Active sessions and recent activity</p>
+          </div>
+          <span class="status-chip online">Live</span>
+        </header>
+
+        <div class="metric-grid">
+          <div class="metric-item">
+            <span class="metric-label">Active Sessions</span>
+            <span class="metric-value">{{ dashboardData.sessionStatistics.activeSessions | number }}</span>
+            <span class="metric-footnote">Currently active</span>
+          </div>
+
+          <div class="metric-item">
+            <span class="metric-label">Recent Sessions</span>
+            <span class="metric-value">{{ dashboardData.sessionStatistics.recentSessions | number }}</span>
+            <span class="metric-footnote">Last 24 hours</span>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <!-- Current Admin Info & System Info -->
+    <section class="insight-panels" *ngIf="dashboardData && currentAdminInfo">
+      <article class="admin-info-card glass">
+        <header class="panel-header">
+          <div>
+            <h3>Current Admin</h3>
+            <p>Your account information</p>
+          </div>
+        </header>
+
+        <div class="admin-details">
+          <div class="admin-detail-item">
+            <span class="detail-label">Username</span>
+            <span class="detail-value">{{ currentAdminInfo.username }}</span>
+          </div>
+          <div class="admin-detail-item">
+            <span class="detail-label">Email</span>
+            <span class="detail-value">{{ currentAdminInfo.email }}</span>
+          </div>
+          <div class="admin-detail-item">
+            <span class="detail-label">Role</span>
+            <span class="detail-value badge-role">{{ currentAdminInfo.role }}</span>
+          </div>
+          <div class="admin-detail-item">
+            <span class="detail-label">Last Active</span>
+            <span class="detail-value">{{ formatDate(currentAdminInfo.lastActive) }}</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="system-info-card glass">
+        <header class="panel-header">
+          <div>
+            <h3>System Information</h3>
+            <p>Dashboard data timestamp</p>
+          </div>
+        </header>
+
+        <div class="system-details">
+          <div class="system-detail-item">
+            <span class="detail-label">Data Timestamp</span>
+            <span class="detail-value">{{ timestampFormatted }}</span>
+          </div>
+          <div class="system-detail-item">
+            <span class="detail-label">Total Devices</span>
+            <span class="detail-value">{{ dashboardData.deviceStatistics.totalDevices | number }}</span>
+          </div>
+          <div class="system-detail-item">
+            <span class="detail-label">Rubik Problems</span>
+            <span class="detail-value">{{ dashboardData.rubikStatistics.totalProblems | number }}</span>
+          </div>
+          <div class="system-detail-item" *ngIf="dashboardData.roomStatistics.totalRooms > 0">
+            <span class="detail-label">Total Rooms</span>
+            <span class="detail-value">{{ dashboardData.roomStatistics.totalRooms | number }}</span>
+          </div>
+        </div>
+      </article>
+    </section>
+  </div>
+</section>

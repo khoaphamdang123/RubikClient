@@ -1,0 +1,150 @@
+<div class="admin-login-container">
+  <div class="admin-login-wrapper">
+    <!-- Left side - Branding -->
+    <div class="admin-login-branding">
+      <div class="branding-content">
+        <div class="admin-icon">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h1 class="branding-title">Admin Portal</h1>
+        <p class="branding-subtitle">Rubik's Cube Management System</p>
+        <div class="branding-features">
+          <div class="feature-item">
+            <span class="feature-icon">🔐</span>
+            <span>Secure Access</span>
+          </div>
+          <div class="feature-item">
+            <span class="feature-icon">📊</span>
+            <span>Full Control</span>
+          </div>
+          <div class="feature-item">
+            <span class="feature-icon">⚡</span>
+            <span>Fast & Reliable</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right side - Login Form -->
+    <div class="admin-login-form-container">
+      <div class="admin-login-form">
+        <div class="form-header">
+          <h2>Welcome Back</h2>
+          <p>Sign in to your admin account</p>
+        </div>
+
+        <form action="" [formGroup]="loginForm" (ngSubmit)="onSubmitForm()" autocomplete="off" novalidate>
+          <div class="form-group">
+            <label for="username">Username</label>
+            <div class="input-wrapper">
+              <svg class="input-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <input 
+                type="text" 
+                id="username" 
+                placeholder="Enter your username" 
+                name="username" 
+                class="form-control" 
+                formControlName="username" 
+                required>
+            </div>
+            @if(loginForm.get('username')?.hasError('required') && loginForm.get('username')?.touched) {
+              <span class="form-error">Username is required</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="password">Password</label>
+            <div class="input-wrapper">
+              <svg class="input-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M7 11V7C7 5.67392 7.52678 4.40215 8.46447 3.46447C9.40215 2.52678 10.6739 2 12 2C13.3261 2 14.5979 2.52678 15.5355 3.46447C16.4732 4.40215 17 5.67392 17 7V11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <input 
+                type="password" 
+                id="password" 
+                placeholder="Enter your password" 
+                class="form-control" 
+                name="password" 
+                formControlName="password" 
+                required>
+            </div>
+            @if(loginForm.get('password')?.hasError('required') && loginForm.get('password')?.touched) {
+              <span class="form-error">Password is required</span>
+            }
+          </div>
+
+          <div class="capcha">
+            <div class="capcha-detail">
+              <div class="capcha-item">
+                <span class="capcha-content">{{capcha.first_number}} {{capcha.operator}} ? = {{capcha.result_number}}</span>
+              </div>
+            </div>
+            <div class="capcha-input">
+              <div class="capcha-input-row">
+                <label for="capcha-res">Result:</label>
+                <input 
+                  type="number" 
+                  id="capcha-res" 
+                  name="capcha-res" 
+                  class="capcha-res" 
+                  #capchaInput 
+                  placeholder="?" 
+                  required>
+                <button class="refresh-capcha-btn" type="button" (click)="refreshCapcha()" title="Refresh">
+                  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M1 4V10H7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M23 20V14H17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M20.49 9C19.7969 7.30457 18.6327 5.8475 17.1339 4.79049C15.6351 3.73347 13.8572 3.11608 12 3.11608C10.1428 3.11608 8.36493 3.73347 6.86612 4.79049C5.3673 5.8475 4.20314 7.30457 3.51003 9H1M23 15C22.3069 16.6954 21.1427 18.1525 19.6439 19.2095C18.1451 20.2665 16.3672 20.8839 14.51 20.8839C12.6528 20.8839 10.8749 20.2665 9.37612 19.2095C7.8773 18.1525 6.71314 16.6954 6.02003 15H23Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </button>
+              </div>
+              @if(!is_valid_capcha) {
+                <span class="form-error capcha-break-row">Incorrect result</span>
+              }
+            </div>
+          </div>
+
+          <button 
+            type="submit" 
+            class="btn btn-primary login-button" 
+            [disabled]="isLoading || isLocked">
+            @if(isLoading) {
+              <span class="loading-spinner"></span>
+              <span>Signing in...</span>
+            } @else if(isLocked) {
+              <span>Locked ({{standard_remaing_time}})</span>
+            } @else {
+              <span>Sign In</span>
+            }
+          </button>
+        </form>
+
+        <!-- <div class="form-footer">
+          <a href="javascript:void(0);" (click)="navigateToClientLogin()" class="client-login-link">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>Back to Client Login</span>
+          </a>
+        </div> -->
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
