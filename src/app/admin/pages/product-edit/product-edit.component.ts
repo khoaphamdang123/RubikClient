@@ -6,39 +6,50 @@ import axios from 'axios';
 import Swal from 'sweetalert2';
 import { environment } from '../../../../environments/environment';
 import { PopupService } from '../../../../services/popup.service';
-import { AdminUser } from '../../models/admin-user.model';
+import { IRubik } from '../../../models/item.model';
 
-interface UserDetailResponse {
+interface ProductDetailResponse {
   status: boolean;
   message: string;
   data: {
-    user: AdminUser;
+    product: Product;
   };
 }
 
-interface UpdateUserResponse {
+interface UpdateProductResponse {
   status: boolean;
   message: string;
   data?: {
-    user?: AdminUser;
+    product?: Product;
   };
 }
 
+interface DeleteProductResponse {
+  status: boolean;
+  message: string;
+}
+
+interface Product extends IRubik {
+  _id?: number;
+  feature?: string;
+  category_id?: number;
+}
+
 @Component({
-  selector: 'app-user-edit',
+  selector: 'app-product-edit',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
-  templateUrl: './user-edit.component.html',
-  styleUrl: './user-edit.component.scss'
+  templateUrl: './product-edit.component.html',
+  styleUrl: './product-edit.component.scss'
 })
-export class UserEditComponent implements OnInit {
-  userForm: FormGroup;
+export class ProductEditComponent implements OnInit {
+  productForm: FormGroup;
   isLoading = true;
   isSaving = false;
   isDeleting = false;
   loadError: string | null = null;
-  userId = '';
-  userData?: AdminUser;
+  productId = '';
+  productData?: Product;
   initialFormValue: any;
   serverMessage = '';
   lastSyncedAt: Date | null = null;
@@ -52,70 +63,46 @@ export class UserEditComponent implements OnInit {
   readonly fallbackAvatar =
     'https://gw.alipayobjects.com/zos/rmsportal/BiazfanxmamNRoxxVxka.png';
 
-  roleOptions = [
-    { label: 'User', roleId: '0' },
-    { label: 'Admin', roleId: '1' },
-  ];
-
-  genderOptions = ['Male', 'Female', 'Other', 'Prefer not to say'];
-
   constructor(
     private fb: FormBuilder,
     private route: ActivatedRoute,
     private router: Router,
     private popupService: PopupService
   ) {
-    this.userForm = this.fb.group({
-      username: ['', [Validators.required, Validators.minLength(3)]],
-      email: ['', [Validators.required, Validators.email]],
-      gender: [''],
-      avatar: [''],
-      role: ['', Validators.required],
-      role_id: ['', Validators.required]
+    this.productForm = this.fb.group({
+      name: ['', [Validators.required, Validators.minLength(1)]],
+      description: ['', [Validators.required]],
+      avatar: ['', [Validators.required]],
+      features: ['']
     });
   }
 
   ngOnInit(): void {
-    this.userId = this.route.snapshot.paramMap.get('id') || '';
+    this.productId = this.route.snapshot.paramMap.get('id') || '';
 
-    if (!this.userId) {
-      this.loadError = 'Missing user identifier. Please return to the user list.';
+    if (!this.productId) {
+      this.loadError = 'Missing product identifier. Please return to the product list.';
       this.isLoading = false;
       return;
     }
 
-    this.fetchUser();
+    this.fetchProduct();
   }
 
   get avatarPreview(): string {
-    const raw = this.userForm.get('avatar')?.value?.trim();
+    const raw = this.productForm.get('avatar')?.value?.trim();
     return raw || this.fallbackAvatar;
   }
 
-  get joinedDateLabel(): string {
-    if (!this.userData?.created_date) {
-      return 'Not available';
-    }
-    try {
-      return new Date(this.userData.created_date).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-      });
-    } catch {
-      return this.userData.created_date;
-    }
-  }
-
   get disableSave(): boolean {
-    return this.isSaving || this.userForm.invalid || !this.userForm.dirty;
+    return this.isSaving || this.productForm.invalid || !this.productForm.dirty;
   }
 
   get disableReset(): boolean {
-    return this.isSaving || !this.userForm.dirty;
+    return this.isSaving || !this.productForm.dirty;
   }
 
-  async fetchUser(): Promise<void> {
+  async fetchProduct(): Promise<void> {
     try {
       this.isLoading = true;
       this.loadError = null;
@@ -126,32 +113,29 @@ export class UserEditComponent implements OnInit {
       this.avatarDragDepth = 0;
 
       const token = localStorage.getItem('TOKEN');
-      const response = await axios.get<UserDetailResponse>(
-        `${environment.server_url}/admin/users/${this.userId}/edit`,
+      const response = await axios.get<ProductDetailResponse>(
+        `${environment.server_url}/admin/products/${this.productId}/edit`,
         { headers: { Authorization: token } }
       );
 
-      const user = response.data?.data?.user;
+      const product = response.data?.data?.product;
 
-      if (!user) {
-        throw new Error(response.data?.message || 'User not found');
+      if (!product) {
+        throw new Error(response.data?.message || 'Product not found');
       }
-      this.serverMessage = response.data?.message || 'User detail retrieved.';
+      this.serverMessage = response.data?.message || 'Product detail retrieved.';
       this.lastSyncedAt = new Date();
-      this.userData = user;
-      this.ensureRoleOption(user);
-      this.userForm.patchValue({
-        username: user.username || '',
-        email: user.email || '',
-        gender: user.gender || '',
-        avatar: user.avatar || '',
-        role: user.role || '',
-        role_id: user.role_id?.toString() ?? ''
+      this.productData = product;
+      this.productForm.patchValue({
+        name: product.name || '',
+        description: product.description || '',
+        avatar: product.avatar || '',
+        features: product.feature ?? product.features ?? ''
       });
-      this.userForm.markAsPristine();
-      this.initialFormValue = this.userForm.getRawValue();
+      this.productForm.markAsPristine();
+      this.initialFormValue = this.productForm.getRawValue();
     } catch (error: any) {
-      console.error('Error loading user:', error);
+      console.error('Error loading product:', error);
       const status = error.response?.status;
       if (status === 401) {
         localStorage.removeItem('TOKEN');
@@ -162,22 +146,22 @@ export class UserEditComponent implements OnInit {
       if (status === 403) {
         this.loadError =
           error.response?.data?.message ||
-          'You do not have permission to edit this user.';
+          'You do not have permission to edit this product.';
         return;
       }
       if (status === 404) {
-        this.loadError = 'User not found or already removed.';
+        this.loadError = 'Product not found or already removed.';
         return;      
       }
-      this.loadError = error.response?.data?.message || error.message || 'Failed to load user details';
+      this.loadError = error.response?.data?.message || error.message || 'Failed to load product details';
     } finally {
       this.isLoading = false;
     }
   }
 
   async saveChanges(): Promise<void> {
-    if (this.userForm.invalid || !this.userId) {
-      this.userForm.markAllAsTouched();
+    if (this.productForm.invalid || !this.productId) {
+      this.productForm.markAllAsTouched();
       return;
     }
 
@@ -186,43 +170,40 @@ export class UserEditComponent implements OnInit {
       const token = localStorage.getItem('TOKEN') ?? '';
       const payload = this.buildPayload();
 
-      const response = await axios.post<UpdateUserResponse>(
-        `${environment.server_url}/admin/users/${this.userId}`,
+      const response = await axios.post<UpdateProductResponse>(
+        `${environment.server_url}/admin/products/${this.productId}`,
         payload,
         { headers: { Authorization: token } }
       );
 
       if (!response.data?.status) {
-        const message = response.data?.message || 'Failed to update user';
+        const message = response.data?.message || 'Failed to update product';
         this.popupService.AlertErrorDialog(message, 'Update failed');
         return;
       }
 
-      const successMessage = response.data?.message || 'User updated successfully';
-      const updatedUser = response.data?.data?.user;
+      const successMessage = response.data?.message || 'Product updated successfully';
+      const updatedProduct = response.data?.data?.product;
 
-      if (updatedUser) {
-        this.userData = updatedUser;
-        this.ensureRoleOption(updatedUser);
-        this.userForm.patchValue({
-          username: updatedUser.username || '',
-          email: updatedUser.email || '',
-          gender: updatedUser.gender || '',
-          avatar: updatedUser.avatar || '',
-          role: updatedUser.role || '',
-          role_id: updatedUser.role_id?.toString() ?? ''
+      if (updatedProduct) {
+        this.productData = updatedProduct;
+        this.productForm.patchValue({
+          name: updatedProduct.name || '',
+          description: updatedProduct.description || '',
+          avatar: updatedProduct.avatar || '',
+          features: updatedProduct.feature ?? updatedProduct.features ?? ''
         });
-        this.userForm.markAsPristine();
-        this.initialFormValue = this.userForm.getRawValue();
+        this.productForm.markAsPristine();
+        this.initialFormValue = this.productForm.getRawValue();
         this.lastSyncedAt = new Date();
       } else {
-        await this.fetchUser();
+        await this.fetchProduct();
       }
 
       this.serverMessage = successMessage;
       this.popupService.AlertSuccessDialog(successMessage, 'Success');
     } catch (error: any) {
-      console.error('Error updating user:', error);
+      console.error('Error updating product:', error);
       if (error.response?.status === 401) {
         this.popupService.AlertErrorDialog('Session expired. Please log in again.', 'Unauthorized');
         localStorage.removeItem('TOKEN');
@@ -231,13 +212,13 @@ export class UserEditComponent implements OnInit {
       }
       if (error.response?.status === 403) {
         this.popupService.AlertErrorDialog(
-          error.response?.data?.message || 'Updating this user is not allowed',
+          error.response?.data?.message || 'Updating this product is not allowed',
           'Forbidden'
         );
         return;
       }
       this.popupService.AlertErrorDialog(
-        error.response?.data?.message || 'Failed to update user',
+        error.response?.data?.message || 'Failed to update product',
         'Error'
       );
     } finally {
@@ -245,14 +226,17 @@ export class UserEditComponent implements OnInit {
     }
   }
 
-  async deleteUser(): Promise<void> {
-    if (!this.userData?._id || this.isDeleting) {
+  async deleteProduct(): Promise<void> {
+    if (!this.productData?._id && !this.productData?.id || this.isDeleting) {
       return;
     }
     
+    const productId = this.productData._id || this.productData.id;
+    const productName = this.productData.name || 'this product';
+    
     const result = await Swal.fire({
-      title: 'Delete user?',
-      text: `This will permanently remove ${this.userData.username}.`,
+      title: 'Delete product?',
+      text: `This will permanently remove ${productName}.`,
       icon: 'warning',
       confirmButtonText: 'Delete',
       cancelButtonText: 'Cancel',
@@ -267,14 +251,25 @@ export class UserEditComponent implements OnInit {
 
     try {
       this.isDeleting = true;
-      const token = localStorage.getItem('TOKEN');
-      await axios.delete(`${environment.server_url}/admin/users/${this.userData._id}`, {
-        headers: { Authorization: token }
-      });
-      this.popupService.AlertSuccessDialog('User deleted successfully', 'Deleted');
-      this.router.navigate(['/admin/users']);
+      const token = localStorage.getItem('TOKEN') ?? '';
+      const response = await axios.get<DeleteProductResponse>(
+        `${environment.server_url}/admin/products/${productId}/delete`,
+        {
+          headers: { Authorization: token }
+        }
+      );
+
+      if (!response.data?.status) {
+        const message = response.data?.message || 'Failed to delete product';
+        this.popupService.AlertErrorDialog(message, 'Error');
+        return;
+      }
+
+      const successMessage = response.data?.message || 'Product deleted successfully';
+      this.popupService.AlertSuccessDialog(successMessage, 'Deleted');
+      this.router.navigate(['/admin/products']);
     } catch (error: any) {
-      console.error('Error deleting user:', error);
+      console.error('Error deleting product:', error);
       if (error.response?.status === 401) {
         this.popupService.AlertErrorDialog('Session expired. Please log in again.', 'Unauthorized');
         localStorage.removeItem('TOKEN');
@@ -282,7 +277,7 @@ export class UserEditComponent implements OnInit {
         return;
       }
       this.popupService.AlertErrorDialog(
-        error.response?.data?.message || 'Failed to delete user',
+        error.response?.data?.message || 'Failed to delete product',
         'Error'
       );
     } finally {
@@ -292,7 +287,7 @@ export class UserEditComponent implements OnInit {
 
   refresh(): void {
     if (!this.isLoading) {
-      this.fetchUser();
+      this.fetchProduct();
     }
   }
 
@@ -300,8 +295,8 @@ export class UserEditComponent implements OnInit {
     if (!this.initialFormValue) {
       return;
     }
-    this.userForm.reset(this.initialFormValue);
-    this.userForm.markAsPristine();
+    this.productForm.reset(this.initialFormValue);
+    this.productForm.markAsPristine();
     this.avatarFileName = '';
     this.avatarUploadError = '';
     this.isAvatarDropActive = false;
@@ -309,20 +304,12 @@ export class UserEditComponent implements OnInit {
   }
 
   goBack(): void {
-    this.router.navigate(['/admin/users']);
+    this.router.navigate(['/admin/products']);
   }
 
   controlInvalid(controlName: string): boolean {
-    const control = this.userForm.get(controlName);
+    const control = this.productForm.get(controlName);
     return !!control && control.invalid && (control.dirty || control.touched);
-  }
-
-  onRoleIdChange(event: Event): void {
-    const roleId = (event.target as HTMLSelectElement)?.value ?? '';
-    const match = this.roleOptions.find(option => option.roleId === roleId);
-    if (match) {
-      this.userForm.patchValue({ role: match.label }, { emitEvent: false });
-    }
   }
 
   onAvatarError(event: Event): void {
@@ -364,7 +351,7 @@ export class UserEditComponent implements OnInit {
   }
 
   clearAvatarSelection(): void {
-    const avatarControl = this.userForm.get('avatar');
+    const avatarControl = this.productForm.get('avatar');
     const fallback = this.initialFormValue?.avatar ?? '';
     avatarControl?.setValue(fallback);
     avatarControl?.markAsPristine();
@@ -415,9 +402,9 @@ export class UserEditComponent implements OnInit {
         onComplete?.();
         return;
       }
-      this.userForm.patchValue({ avatar: result });
-      this.userForm.get('avatar')?.markAsDirty();
-      this.userForm.markAsDirty();
+      this.productForm.patchValue({ avatar: result });
+      this.productForm.get('avatar')?.markAsDirty();
+      this.productForm.markAsDirty();
       this.avatarFileName = file.name;
       this.avatarUploadError = '';
       onComplete?.();
@@ -429,65 +416,24 @@ export class UserEditComponent implements OnInit {
     reader.readAsDataURL(file);
   }
 
-  private ensureRoleOption(user: AdminUser): void {
-    if (!user?.role_id && user?.role_id !== 0) {
-      return;
-    }
-    const roleId = user.role_id.toString();
-    const exists = this.roleOptions.some(option => option.roleId === roleId);
-    if (!exists) {
-      this.roleOptions.push({
-        label: user.role || `Role ${roleId}`,
-        roleId
-      });
-    }
-  }
-
   private buildPayload(): Record<string, unknown> {
-    const value = this.userForm.value;
+    const value = this.productForm.value;
     const payload: Record<string, unknown> = {};
 
-    if (typeof value['username'] !== 'undefined') {
-      payload['username'] = value['username']?.trim();
+    if (typeof value['name'] !== 'undefined') {
+      payload['name'] = value['name']?.trim();
     }
-    if (typeof value['email'] !== 'undefined') {
-      payload['email'] = value['email']?.trim();
-    }
-    if (typeof value['gender'] !== 'undefined') {
-      payload['gender'] = value['gender'] || null;
+    if (typeof value['description'] !== 'undefined') {
+      payload['description'] = value['description']?.trim();
     }
     if (typeof value['avatar'] !== 'undefined') {
       payload['avatar'] = value['avatar'] || null;
     }
-    if (typeof value['role_id'] !== 'undefined') {
-      payload['role_id'] = this.normalizeRoleId(value['role_id']);
-    }
-    if (typeof value['is_checking'] !== 'undefined') {
-      payload['is_checking'] = value['is_checking'];
-    }
-    if (typeof value['phone'] !== 'undefined') {
-      payload['phone'] = value['phone'];
+    if (typeof value['features'] !== 'undefined') {
+      payload['feature'] = value['features']?.trim() || null;
     }
 
     return payload;
-  }
-
-  private normalizeRoleId(roleId: string | number): string | number {
-    if (roleId === null || roleId === undefined) {
-      return '';
-    }
-
-    if (typeof roleId === 'number') {
-      return roleId;
-    }
-
-    const trimmed = roleId.trim();
-    if (!trimmed) {
-      return '';
-    }
-
-    const parsed = Number(trimmed);
-    return Number.isNaN(parsed) ? trimmed : parsed;
   }
 }
 

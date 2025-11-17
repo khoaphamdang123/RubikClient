@@ -1,0 +1,52 @@
+@use '../user-create/user-create.component.scss' as *;
+
+:host {
+  display: block;
+}
+
+.create-product-shell {
+  .preview-card {
+    .status-chip {
+      background: rgba(34, 197, 94, 0.15);
+      color: #22c55e;
+      border: 1px solid rgba(34, 197, 94, 0.35);
+    }
+  }
+
+  .rule-list {
+    margin: 0.5rem 0 0;
+    padding-left: 1.25rem;
+    color: var(--user-text-tertiary);
+
+    li + li {
+      margin-top: 0.35rem;
+    }
+  }
+
+  .api-guidance {
+    border-radius: 16px;
+    padding: 1rem;
+    background: rgba(56, 189, 248, 0.07);
+    border: 1px dashed rgba(56, 189, 248, 0.4);
+    color: var(--user-text-primary);
+  }
+
+  .description-input {
+    font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+    font-size: 1rem;
+    line-height: 1.65;
+    letter-spacing: 0.015em;
+    font-weight: 500;
+    color: var(--user-text-primary);
+    min-height: 160px;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(59, 130, 246, 0.02));
+    border: 1px solid rgba(59, 130, 246, 0.25);
+
+    &::placeholder {
+      color: rgba(100, 116, 139, 0.9);
+      font-weight: 400;
+      letter-spacing: 0.01em;
+    }
+  }
+}
+

@@ -1,23 +1,23 @@
-<div class="user-edit-shell">
+<div class="product-edit-shell">
   <div class="page-header glass">
     <div class="breadcrumbs">
-      <button type="button" class="back-link" (click)="goBack()">← Back to users</button>
+      <button type="button" class="back-link" (click)="goBack()">← Back to products</button>
       <span>/</span>
-      <span>Edit user</span>
+      <span>Edit product</span>
     </div>
     <div class="header-main">
       <div>
-        <p class="eyebrow">User management</p>
-        <h1>Edit {{ userData?.username || 'user' }}</h1>
-        <p>Review account details, adjust roles, and keep this profile up to date.</p>
+        <p class="eyebrow">Product management</p>
+        <h1>Edit {{ productData?.name || 'product' }}</h1>
+        <p>Review product details, update information, and keep this product up to date.</p>
         <div class="quick-meta">
           <div>
-            <span>User ID</span>
-            <strong>{{ userData?._id || '—' }}</strong>
+            <span>Product ID</span>
+            <strong>{{ productData?._id || productData?.id || '—' }}</strong>
           </div>
           <div>
-            <span>Current role</span>
-            <strong>{{ userData?.role || userForm.value.role || 'Role pending' }}</strong>
+            <span>Product name</span>
+            <strong>{{ productData?.name || productForm.value.name || 'Name pending' }}</strong>
           </div>
           <div>
             <span>Last sync</span>
@@ -39,7 +39,7 @@
           (click)="saveChanges()"
           [disabled]="disableSave">
           <span *ngIf="!isSaving">Save changes</span>
-          <span *ngIf="isSaving">Saving…</span>
+          <span *ngIf="isSaving">Saving…</span>          
         </button>
       </div>
     </div>
@@ -47,12 +47,12 @@
 
   <div *ngIf="isLoading" class="state-card glass">
     <div class="loader"></div>
-    <p>Loading user details…</p>
+    <p>Loading product details…</p>
   </div>
 
   <div *ngIf="loadError && !isLoading" class="state-card glass error">
     <p>{{ loadError }}</p>
-    <button type="button" class="btn primary" (click)="fetchUser()">Try again</button>
+    <button type="button" class="btn primary" (click)="fetchProduct()">Try again</button>
   </div>
 
   <div *ngIf="!isLoading && !loadError" class="content-grid">
@@ -68,70 +68,67 @@
           <strong>{{ lastSyncedAt ? (lastSyncedAt | date: 'medium') : 'Just now' }}</strong>
         </div>
         <div>
-          <span>Role</span>
-          <strong>{{ userData?.role || 'Unknown' }}</strong>
+          <span>Product ID</span>
+          <strong>{{ productData?._id || productData?.id || 'Unknown' }}</strong>
         </div>
       </div>
     </div>
     <section class="form-panel glass">
-      <form [formGroup]="userForm" (ngSubmit)="saveChanges()" novalidate>
+      <form [formGroup]="productForm" (ngSubmit)="saveChanges()" novalidate>
         <div class="form-section">
           <div class="section-heading">
             <div>
-              <p class="eyebrow">Profile</p>
+              <p class="eyebrow">Product</p>
               <h2>Basic information</h2>
               <p>Visible across the admin and client experiences.</p>
             </div>
           </div>
           <div class="field-grid two">
             <label class="form-field">
-              <span>Username</span>
-              <input type="text" formControlName="username" placeholder="Enter username" />
-              <small *ngIf="controlInvalid('username')">
-                Username is required and must be at least 3 characters.
+              <span>Product name</span>
+              <input type="text" formControlName="name" placeholder="Enter product name" />
+              <small *ngIf="controlInvalid('name')">
+                Product name is required.
               </small>
             </label>
 
             <label class="form-field">
-              <span>Email address</span>
-              <input type="email" formControlName="email" placeholder="name@domain.com" />
-              <small *ngIf="controlInvalid('email')">Provide a valid email address.</small>
+              <span>Product image URL</span>
+              <input type="url" formControlName="avatar" placeholder="https://…" (input)="onAvatarUrlInput()" />
+              <small *ngIf="controlInvalid('avatar')">Provide a valid image URL.</small>
             </label>
           </div>
 
-          <div class="field-grid two">
+          <div class="field-grid one">
             <label class="form-field">
-              <span>Gender</span>
-              <select formControlName="gender">
-                <option value="">Select gender</option>
-                <option *ngFor="let gender of genderOptions" [value]="gender">{{ gender }}</option>
-              </select>
+              <span>Description</span>
+              <textarea
+                class="description-input"
+                formControlName="description"
+                placeholder="Enter product description"
+                rows="4"></textarea>
+              <small *ngIf="controlInvalid('description')">Description is required.</small>
             </label>
+          </div>
 
+          <div class="field-grid one">
             <label class="form-field">
-              <span>Avatar URL</span>
-              <input
-                type="url"
-                formControlName="avatar"
-                placeholder="https://…"
-                (input)="onAvatarUrlInput()" />
-              <small>Paste a hosted image if you manage avatars elsewhere.</small>
+              <span>Features</span>
+              <textarea
+                formControlName="features"
+                placeholder="Enter product features (optional)"
+                rows="4"></textarea>
+              <small>Additional product features or specifications.</small>
             </label>
           </div>
 
           <div class="avatar-designer glass">
             <div class="avatar-designer-head">
               <div>
-                <p class="eyebrow">Profile photo</p>
-                <h3>Update avatar</h3>
-                <p>Drag in a new image or browse your device. We’ll preview it instantly.</p>
+                <p class="eyebrow">Product image</p>
+                <h3>Update product image</h3>
+                <p>Drag in a new image or browse your device. We'll preview it instantly.</p>
               </div>
-              <!-- <button
-                type="button"
-                class="btn outline"
-                (click)="openAvatarPicker(avatarInput)">
-                Upload from device
-              </button> -->
             </div>
             <input
               type="file"
@@ -152,7 +149,7 @@
               (dragleave)="onAvatarDragLeave($event)"
               (drop)="onAvatarDrop($event)">
               <div class="upload-preview">
-                <img [src]="avatarPreview" alt="User avatar preview" (error)="onAvatarError($event)" />
+                <img [src]="avatarPreview" alt="Product image preview" (error)="onAvatarError($event)" />
               </div>
               <div class="upload-copy">
                 <strong>Drop an image or click to browse</strong>
@@ -162,42 +159,13 @@
             </label>
             <div class="upload-controls">
               <button type="button" class="btn ghost" (click)="clearAvatarSelection()">
-                Use saved avatar
+                Use saved image
               </button>
               <button type="button" class="btn outline" (click)="openAvatarPicker(avatarInput)">
                 Upload from device
               </button>
             </div>
             <small class="error" *ngIf="avatarUploadError">{{ avatarUploadError }}</small>
-          </div>
-        </div>
-
-        <div class="form-section">
-          <div class="section-heading">
-            <div>
-              <p class="eyebrow">Permissions</p>
-              <h2>Role & access</h2>
-              <p>Control what this user can do inside the platform.</p>
-            </div>
-          </div>
-
-          <div class="field-grid two">
-            <label class="form-field">
-              <span>Role preset</span>
-              <select formControlName="role_id" (change)="onRoleIdChange($event)">
-                <option value="">Select role</option>
-                <option *ngFor="let role of roleOptions" [value]="role.roleId">
-                  {{ role.label }} · ID {{ role.roleId }}
-                </option>
-              </select>
-              <small *ngIf="controlInvalid('role_id')">Select a role preset.</small>
-            </label>
-
-            <label class="form-field">
-              <span>Role label</span>
-              <input type="text" formControlName="role" placeholder="Role label shown across the app" />
-              <small>Use a custom label if you added a bespoke permission set.</small>
-            </label>
           </div>
         </div>
 
@@ -220,25 +188,26 @@
     <aside class="context-panel">
       <div class="profile-card glass">
         <div class="avatar-ring">
-          <img [src]="avatarPreview" alt="User avatar" (error)="onAvatarError($event)" />
+          <img [src]="avatarPreview" alt="Product image" (error)="onAvatarError($event)" />
         </div>
-        <h3>{{ userForm.value.username || 'Unnamed user' }}</h3>
-        <p>{{ userForm.value.email || 'No email provided' }}</p>
-        <span class="role-chip">{{ userForm.value.role || 'Role pending' }}</span>
+        <h3>{{ productForm.value.name || 'Unnamed product' }}</h3>
+        <p class="description-preview">
+          {{ productForm.value.description || 'No description provided' }}
+        </p>
       </div>
 
       <div class="meta-card glass">
         <div class="meta-row">
-          <span>Joined</span>
-          <strong>{{ joinedDateLabel }}</strong>
+          <span>Product ID</span>
+          <strong>{{ productData?._id || productData?.id || '—' }}</strong>
         </div>
         <div class="meta-row">
-          <span>User ID</span>
-          <strong>{{ userData?._id || '—' }}</strong>
+          <span>Name</span>
+          <strong>{{ productForm.value.name || '—' }}</strong>
         </div>
         <div class="meta-row">
-          <span>Role ID</span>
-          <strong>{{ userForm.value.role_id || '—' }}</strong>
+          <span>Has features</span>
+          <strong>{{ productForm.value.features ? 'Yes' : 'No' }}</strong>
         </div>
         <button type="button" class="btn outline" (click)="refresh()">Refresh data</button>
       </div>
@@ -246,10 +215,10 @@
       <div class="danger-card glass">
         <div>
           <h3>Danger zone</h3>
-          <p>Deleting a user removes their access immediately.</p>
+          <p>Deleting a product removes it immediately.</p>
         </div>
-        <button type="button" class="btn danger" (click)="deleteUser()" [disabled]="isDeleting">
-          <span *ngIf="!isDeleting">Delete user</span>
+        <button type="button" class="btn danger" (click)="deleteProduct()" [disabled]="isDeleting">
+          <span *ngIf="!isDeleting">Delete product</span>
           <span *ngIf="isDeleting">Deleting…</span>
         </button>
       </div>

@@ -1,135 +1,254 @@
-<div class="products-container">
-  <!-- Header -->
-  <div class="page-header">
-    <div class="header-content">
-      <h1 class="page-title">Product Management</h1>
-      <button class="btn btn-primary" (click)="openAddModal()">
-        <span>➕</span>
-        <span>Add Product</span>
+<section class="users-shell">
+  <div class="loading-overlay" *ngIf="isLoading">
+    <div class="loading-card">
+      <div class="glow"></div>
+      <div class="spinner"></div>
+      <p>Loading products…</p>
+    </div>
+  </div>
+
+  <div class="users-grid" [class.dimmed]="isLoading">
+    <!-- Hero Header -->
+    <header class="users-hero">
+      <div class="hero-intro">
+        <div class="hero-badge">All Products</div>
+        <h2>Product Management</h2>
+        <p>
+          Manage and monitor all products in your system. Search, filter, and view product details.
+        </p>
+      </div>
+      <div class="hero-actions">
+        <button
+          type="button"
+          class="action-btn primary"
+          (click)="addProduct()"
+          [disabled]="isLoading">
+          <span class="action-icon">➕</span>
+          Add Product
+        </button>
+        <button
+          type="button"
+          class="refresh-btn"
+          (click)="refreshProducts()"
+          [disabled]="isLoading">
+          <span class="refresh-icon" aria-hidden="true">↻</span>
+          Refresh
+        </button>
+      </div>
+    </header>
+
+    <!-- Error State -->
+    <div *ngIf="error && !isLoading" class="error-state glass">
+      <div class="error-icon">⚠️</div>
+      <h3>Error Loading Products</h3>
+      <p>{{ error }}</p>
+      <button type="button" class="refresh-btn" (click)="refreshProducts()">
+        <span class="refresh-icon" aria-hidden="true">↻</span>
+        Retry
       </button>
     </div>
-    
-    <!-- Search Bar -->
-    <div class="search-bar">
-      <input
-        type="text"
-        class="form-control"
-        placeholder="Search products by name, description, or features..."
-        [(ngModel)]="searchTerm"
-        (input)="onSearch()">
-    </div>
-  </div>
 
-  <!-- Loading State -->
-  <div *ngIf="isLoading" class="loading-state">
-    <div class="spinner"></div>
-    <p>Loading products...</p>
-  </div>
+    <!-- Filters and Search -->
+    <div class="filters-section glass" *ngIf="!error">
+      <div class="filters-grid">
+        <div class="filter-group">
+          <label class="filter-label">Search Products</label>
+          <div class="search-input-wrapper">
+            <span class="search-icon">🔍</span>
+            <input
+              type="text"
+              class="search-input"
+              placeholder="Search by name or description..."
+              [(ngModel)]="searchTerm"
+              (keyup.enter)="onSearch()"
+              (blur)="onSearch()">
+            <button
+              type="button"
+              class="search-btn"
+              (click)="onSearch()"
+              [disabled]="isLoading">
+              Search
+            </button>
+          </div>
+        </div>
 
-  <!-- Products Grid -->
-  <div *ngIf="!isLoading" class="products-grid">
-    <div *ngIf="filteredProducts.length === 0" class="empty-state">
-      <p>No products found</p>
-    </div>
+        <div class="filter-group">
+          <label class="filter-label">Items per Page</label>
+          <select
+            class="filter-select"
+            [(ngModel)]="pageSize"
+            (change)="onPageSizeChange()">
+            <option *ngFor="let size of pageSizeOptions" [value]="size">{{ size }}</option>
+          </select>
+        </div>
 
-    <div *ngFor="let product of filteredProducts" class="product-card">
-      <div class="product-image">
-        <img
-          [src]="product.avatar"
-          [alt]="product.name"
-          onerror="this.src='assets/images/rubik.png'">
+        <div class="filter-group column-filter">
+          <label class="filter-label">Show/Hide Columns</label>
+          <div class="column-select" [class.open]="isColumnDropdownOpen">
+            <button
+              type="button"
+              class="column-select-trigger"
+              (click)="toggleColumnDropdown($event)"
+              [disabled]="isLoading">
+              <span class="column-select-label">{{ selectedColumnsLabel }}</span>
+              <span class="column-select-icon" aria-hidden="true">⌄</span>
+            </button>
+
+            <div
+              class="column-select-dropdown"
+              *ngIf="isColumnDropdownOpen"
+              (click)="$event.stopPropagation()">
+              <label class="column-option" *ngFor="let column of columns">
+                <input
+                  type="checkbox"
+                  [checked]="columnVisibility[column.value]"
+                  (change)="onColumnOptionToggle(column.value, $any($event.target).checked)">
+                <span>{{ column.label }}</span>
+              </label>
+
+              <button
+                type="button"
+                class="column-select-reset"
+                (click)="resetColumnSelection()">
+                Reset to defaults
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="product-info">
-        <h3 class="product-name">{{ product.name }}</h3>
-        <p class="product-description">{{ product.description || 'No description' }}</p>
-        <div class="product-actions">
+    </div>
+
+    <!-- Statistics Summary -->
+    <div class="stats-summary glass" *ngIf="pagination && !error">
+      <div class="stat-item">
+        <span class="stat-label">Total Products</span>
+        <span class="stat-value">{{ pagination.totalProducts | number }}</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Current Page</span>
+        <span class="stat-value">{{ pagination.currentPage }} / {{ pagination.totalPages }}</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Showing</span>
+        <span class="stat-value">{{ products.length }} products</span>
+      </div>
+    </div>
+
+    <!-- Products Table -->
+    <div class="users-table-container" *ngIf="!error">
+      <div *ngIf="products.length === 0 && !isLoading" class="empty-state glass">
+        <div class="empty-icon">📦</div>
+        <h3>No Products Found</h3>
+        <p>No products match your current search criteria.</p>
+        <button
+          type="button"
+          class="refresh-btn"
+          (click)="searchTerm = ''; onSearch()">
+          Clear Filters
+        </button>
+      </div>
+
+      <div *ngIf="products.length > 0" class="table-wrapper glass">
+        <table class="users-table">
+          <thead>
+            <tr>
+              <th *ngIf="columnVisibility.id">ID</th>
+              <th *ngIf="columnVisibility.name">Name</th>
+              <th *ngIf="columnVisibility.description">Description</th>
+              <th *ngIf="columnVisibility.avatar">Image</th>
+              <th *ngIf="columnVisibility.features">Features</th>
+              <th *ngIf="columnVisibility.actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let product of products; let i = index" class="user-row">
+              <td *ngIf="columnVisibility.id" class="id-cell" data-label="ID">{{ getRowNumber(i) }}</td>
+              <td *ngIf="columnVisibility.name" class="user-cell" data-label="Name">
+                <div class="user-info">
+                  <span class="user-name">{{ product.name || '-' }}</span>
+                </div>
+              </td>
+              <td *ngIf="columnVisibility.description" class="email-cell" data-label="Description">
+                {{ truncateText(product.description, 100) }}
+              </td>
+              <td *ngIf="columnVisibility.avatar" class="role-cell" data-label="Image">
+                <div class="product-image-cell">
+                  <img
+                    [src]="product.avatar || 'https://gw.alipayobjects.com/zos/rmsportal/BiazfanxmamNRoxxVxka.png'"
+                    [alt]="product.name"
+                    class="product-thumbnail"
+                    onerror="this.src='https://gw.alipayobjects.com/zos/rmsportal/BiazfanxmamNRoxxVxka.png'">
+                </div>
+              </td>
+              <td *ngIf="columnVisibility.features" class="email-cell" data-label="Features">
+                {{ truncateText(product.features, 80) }}
+              </td>
+              <td *ngIf="columnVisibility.actions" class="actions-cell" data-label="Actions">
+                <div class="action-buttons">
+                  <button
+                    type="button"
+                    class="action-btn secondary"
+                    (click)="editProduct(product)"
+                    title="Edit Product">
+                    <span class="action-icon">✏️</span>
+                    <span>Edit</span>
+                  </button>
+                  <button
+                    type="button"
+                    class="action-btn danger"
+                    (click)="deleteProduct(product)"
+                    title="Delete Product">
+                    <span class="action-icon">🗑️</span>
+                    <span>Delete</span>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination-container glass" *ngIf="pagination && !error">
+      <div class="pagination-info">
+        <span>
+          Showing page {{ pagination.currentPage }} of {{ pagination.totalPages }}
+          ({{ pagination.totalProducts }} total products)
+        </span>
+      </div>
+      <div class="pagination-controls">
+        <button
+          type="button"
+          class="pagination-btn"
+          [disabled]="!pagination.hasPrevPage || isLoading"
+          (click)="goToPage(currentPage - 1)">
+          <span>←</span>
+          Previous
+        </button>
+
+        <div class="pagination-numbers">
           <button
-            class="btn btn-sm btn-outline-primary"
-            (click)="openEditModal(product)">
-            ✏️ Edit
-          </button>
-          <button
-            class="btn btn-sm btn-danger"
-            (click)="deleteProduct(product)">
-            🗑️ Delete
+            *ngFor="let page of getPageNumbers()"
+            type="button"
+            class="pagination-number"
+            [class.active]="page === currentPage"
+            [class.ellipsis]="page === -1"
+            [disabled]="page === -1 || isLoading"
+            (click)="page !== -1 && goToPage(page)">
+            {{ page === -1 ? '...' : page }}
           </button>
         </div>
+
+        <button
+          type="button"
+          class="pagination-btn"
+          [disabled]="!pagination.hasNextPage || isLoading"
+          (click)="goToPage(currentPage + 1)">
+          Next
+          <span>→</span>
+        </button>
       </div>
     </div>
   </div>
-
-  <!-- Add/Edit Modal -->
-  <div *ngIf="isModalOpen" class="modal-overlay" (click)="closeModal()">
-    <div class="modal-content" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h2 class="modal-title">{{ isEditMode ? 'Edit Product' : 'Add New Product' }}</h2>
-        <button class="modal-close" (click)="closeModal()">×</button>
-      </div>
-
-      <form [formGroup]="productForm" (ngSubmit)="onSubmit()" class="modal-body">
-        <div class="form-group">
-          <label class="form-label">Product Name *</label>
-          <input
-            type="text"
-            class="form-control"
-            formControlName="name"
-            [class.invalid]="productForm.get('name')?.invalid && productForm.get('name')?.touched">
-          <div *ngIf="productForm.get('name')?.invalid && productForm.get('name')?.touched" class="form-error">
-            Product name is required
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Description *</label>
-          <textarea
-            class="form-control"
-            formControlName="description"
-            rows="4"
-            [class.invalid]="productForm.get('description')?.invalid && productForm.get('description')?.touched"></textarea>
-          <div *ngIf="productForm.get('description')?.invalid && productForm.get('description')?.touched" class="form-error">
-            Description is required
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Image URL *</label>
-          <input
-            type="url"
-            class="form-control"
-            formControlName="avatar"
-            placeholder="https://example.com/image.jpg"
-            [class.invalid]="productForm.get('avatar')?.invalid && productForm.get('avatar')?.touched">
-          <div *ngIf="productForm.get('avatar')?.invalid && productForm.get('avatar')?.touched" class="form-error">
-            Image URL is required
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Features</label>
-          <textarea
-            class="form-control"
-            formControlName="features"
-            rows="3"
-            placeholder="Enter product features (optional)"></textarea>
-        </div>
-
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" (click)="closeModal()">Cancel</button>
-          <button type="submit" class="btn btn-primary" [disabled]="productForm.invalid">
-            {{ isEditMode ? 'Update' : 'Create' }}
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-
-
-
-
-
-
-
-
-
+</section>

@@ -72,6 +72,11 @@ export class UsersComponent implements OnInit {
   selectedRole = '';
   availableRoles: string[] = [];
   
+  // Initialize with all possible roles from roleOptions (including disabled ones for filtering)
+  getAllRoleLabels(): string[] {
+    return this.roleOptions.map(role => role.label);
+  }
+  
   // Pagination
   currentPage = 1;
   pageSize = 10;
@@ -109,8 +114,6 @@ export class UsersComponent implements OnInit {
   roleOptions = [
     { label: 'User', roleId: '0', disabled: false },
     { label: 'Admin', roleId: '1', disabled: true },
-    { label: 'Premium', roleId: '2', disabled: false },
-    { label: 'Guest', roleId: '3', disabled: false }
   ];
   genderOptions = ['Male', 'Female', 'Other', 'Prefer not to say'];
 
@@ -147,6 +150,8 @@ export class UsersComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    // Initialize available roles with all possible roles
+    this.availableRoles = this.getAllRoleLabels();
     this.loadUsers();
   }
 
@@ -178,14 +183,20 @@ export class UsersComponent implements OnInit {
         this.users = response.data.data.users;
         this.pagination = response.data.data.pagination;
         
-        // Extract unique roles from users for filter dropdown
-        const uniqueRoles = new Set<string>();
+        // Get all possible roles from roleOptions
+        const allPossibleRoles = new Set<string>(this.getAllRoleLabels());
+        
+        // Also include any unique roles found in the user data (for custom roles)
         this.users.forEach(user => {
           if (user.role) {
-            uniqueRoles.add(user.role);
+            allPossibleRoles.add(user.role);
           }
         });
-        this.availableRoles = Array.from(uniqueRoles).sort();
+        
+        // Sort roles: standard roles first, then any custom roles
+        const standardRoles = this.getAllRoleLabels();
+        const customRoles = Array.from(allPossibleRoles).filter(role => !standardRoles.includes(role));
+        this.availableRoles = [...standardRoles.sort(), ...customRoles.sort()];
       } else {
         this.error = response.data.message || 'Failed to load users';
         this.users = [];
@@ -274,8 +285,8 @@ export class UsersComponent implements OnInit {
   getRoleBadgeClass(role: string): string {
     const roleLower = role?.toLowerCase() || '';
     if (roleLower.includes('admin')) return 'badge-admin';
-    if (roleLower.includes('premium')) return 'badge-premium';
-    if (roleLower.includes('guest')) return 'badge-guest';
+    // if (roleLower.includes('premium')) return 'badge-premium';
+    // if (roleLower.includes('guest')) return 'badge-guest';
     return 'badge-user';
   }
 

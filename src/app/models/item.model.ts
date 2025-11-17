@@ -5,4 +5,6 @@ export interface IRubik
     description:string;
     avatar:string;
     features:string;
+    feature?:string;
+    category_id?:number;
 }
