@@ -1,155 +1,233 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, ElementRef, HostListener, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { FormBuilder, FormGroup, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { PopupService } from '../../../../services/popup.service';
 import Swal from 'sweetalert2';
 import axios from 'axios';
 import { environment } from '../../../../environments/environment';
 
+interface Category {
+  _id?: string;
+  category_name: string;
+  description?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  created_date?: string;
+  updated_date?: string;
+}
+
+interface PaginationData {
+  currentPage: number;
+  totalPages: number;
+  totalCategories: number;
+  limit: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+}
+
+interface CategoriesResponse {
+  status: boolean;
+  message: string;
+  data: {
+    categories: Category[];
+    pagination: PaginationData;
+  };
+}
+
+interface DeleteCategoryResponse {
+  status: boolean;
+  message: string;
+}
+
+type ColumnKey = 'id' | 'name' | 'created_date';
+
 @Component({
   selector: 'app-categories',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './categories.component.html',
   styleUrl: './categories.component.scss'
 })
 export class CategoriesComponent implements OnInit {
-  categories: any[] = [];
-  filteredCategories: any[] = [];
+  categories: Category[] = [];
+  pagination: PaginationData | null = null;
   isLoading = false;
-  isModalOpen = false;
-  isEditMode = false;
-  selectedCategory: any = null;
+  error: string | null = null;
+
+  // Search
   searchTerm = '';
 
-  categoryForm!: FormGroup;
+  // Pagination
+  currentPage = 1;
+  pageSize = 10;
+  pageSizeOptions = [10, 20, 50, 100];
+
+  columns: Array<{ label: string; value: ColumnKey }> = [
+    { label: 'ID', value: 'id' },
+    { label: 'Name', value: 'name' },
+    { label: 'Created At', value: 'created_date' }
+  ];
+
+  // Column visibility
+  columnVisibility: Record<ColumnKey, boolean> & { actions: boolean } = {
+    id: true,
+    name: true,
+    created_date: true,
+    actions: true
+  };
+
+  selectedColumns: ColumnKey[] = ['id', 'name', 'created_date'];
+  isColumnDropdownOpen = false;
 
   constructor(
-    private fb: FormBuilder,
-    private popupService: PopupService
-  ) {
-    this.initForm();
+    private popupService: PopupService,
+    private elementRef: ElementRef,
+    private router: Router
+  ) {}
+
+  @HostListener('document:click', ['$event'])  
+  handleDocumentClick(event: Event): void {
+    if (
+      this.isColumnDropdownOpen &&
+      !this.elementRef.nativeElement.contains(event.target as Node)
+    ) {
+      this.closeColumnDropdown();      
+    }
   }
 
-  ngOnInit(): void {
+  @HostListener('document:keydown.escape')
+  handleEscape(): void {
+    this.closeColumnDropdown();
+  }
+
+  ngOnInit(): void 
+  {
     this.loadCategories();
-  }
-
-  initForm(): void {
-    this.categoryForm = this.fb.group({
-      name: new FormControl('', [Validators.required]),
-      description: new FormControl(''),
-      icon: new FormControl('')
-    });
   }
 
   async loadCategories(): Promise<void> {
     try {
       this.isLoading = true;
+      this.error = null;
+
       const token = localStorage.getItem('TOKEN');
-      const response = await axios.get(`${environment.server_url}/admin/categories`, {
-        headers: { 'Authorization': token }
-      });
-      this.categories = response.data || [];
-      this.filteredCategories = [...this.categories];
+      const params = new URLSearchParams();
+      params.append('page', this.currentPage.toString());
+      params.append('limit', this.pageSize.toString());
+
+      if (this.searchTerm.trim()) {
+        params.append('search', this.searchTerm.trim());
+      }
+
+      const authHeader: string = token ? token : '';
+      const response = await axios.get<CategoriesResponse>(
+        `${environment.server_url}/admin/categories?${params.toString()}`,
+        { headers: { Authorization: authHeader } }
+      );
+
+      if (response.data.status && response.data.data) 
+      {
+        this.categories = response.data.data.categories;
+        this.pagination = response.data.data.pagination;
+      } else {
+        this.error = response.data.message || 'Failed to load categories';
+        this.categories = [];
+        this.pagination = null;
+      }
     } catch (error: any) {
       console.error('Error loading categories:', error);
       if (error.response?.status === 401) {
         this.popupService.AlertErrorDialog('Unauthorized access', 'Error');
         localStorage.removeItem('TOKEN');
-        window.location.href = '/login';
+        window.location.href = '/admin/login';        
       } else {
-        // Fallback: use mock data or empty array
-        this.categories = [];
-        this.filteredCategories = [];
+        this.error = error.response?.data?.message || 'Failed to load categories';
+        this.popupService.AlertErrorDialog(this.error ?? 'Failed to load categories', 'Error');
       }
+      this.categories = [];
+      this.pagination = null;
     } finally {
-      this.isLoading = false;
+      this.isLoading = false;      
     }
   }
 
   onSearch(): void {
-    if (!this.searchTerm.trim()) {
-      this.filteredCategories = [...this.categories];
-      return;
+    this.currentPage = 1;
+    this.loadCategories();
+  }
+
+  onPageSizeChange(): void 
+  {
+    this.currentPage = 1;
+    this.loadCategories();    
+  }
+
+  goToPage(page: number): void {
+    if (page >= 1 && this.pagination && page <= this.pagination.totalPages) {
+      this.currentPage = page;
+      this.loadCategories();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-
-    const term = this.searchTerm.toLowerCase();
-    this.filteredCategories = this.categories.filter(category =>
-      category.name?.toLowerCase().includes(term) ||
-      category.description?.toLowerCase().includes(term)
-    );
   }
 
-  openAddModal(): void {
-    this.isEditMode = false;
-    this.selectedCategory = null;
-    this.categoryForm.reset();
-    this.isModalOpen = true;
-  }
+  getPageNumbers(): number[] {
+    if (!this.pagination) return [];
 
-  openEditModal(category: any): void {
-    this.isEditMode = true;
-    this.selectedCategory = category;
-    this.categoryForm.patchValue({
-      name: category.name,
-      description: category.description || '',
-      icon: category.icon || ''
-    });
-    this.isModalOpen = true;
-  }
+    const totalPages = this.pagination.totalPages;
+    const current = this.currentPage;
+    const pages: number[] = [];    
 
-  closeModal(): void {
-    this.isModalOpen = false;
-    this.isEditMode = false;
-    this.selectedCategory = null;
-    this.categoryForm.reset();
-  }
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
 
-  async onSubmit(): Promise<void> {
-    if (!this.categoryForm.valid) {
-      this.categoryForm.markAllAsTouched();
-      return;
-    }
+      pages.push(1);
 
-    try {
-      const token = localStorage.getItem('TOKEN');
-      const formValue = this.categoryForm.value;
-
-      if (this.isEditMode && this.selectedCategory?.id) {
-        // Update category
-        await axios.put(
-          `${environment.server_url}/admin/categories/${this.selectedCategory.id}`,
-          formValue,
-          { headers: { 'Authorization': token } }
-        );
-        this.popupService.AlertSuccessDialog('Category updated successfully', 'Success');
-      } else {
-        // Create category
-        await axios.post(
-          `${environment.server_url}/admin/categories`,
-          formValue,
-          { headers: { 'Authorization': token } }
-        );
-        this.popupService.AlertSuccessDialog('Category created successfully', 'Success');
+      if (current > 3) {
+        pages.push(-1); // Ellipsis
       }
 
-      this.closeModal();
-      await this.loadCategories();
-    } catch (error: any) {
-      console.error('Error saving category:', error);
-      this.popupService.AlertErrorDialog(
-        error.response?.data?.message || 'Failed to save category',
-        'Error'
-      );
+      const start = Math.max(2, current - 1);
+      
+      const end = Math.min(totalPages - 1, current + 1);
+
+      for (let i = start; i <= end; i++) 
+      {
+        pages.push(i);
+      }
+
+      if (current < totalPages - 2) 
+      {
+        pages.push(-1);         
+      }
+
+      pages.push(totalPages);
+    }
+
+    return pages;
+  }
+
+  formatDate(dateString?: string): string {
+    if (!dateString) return 'N/A';
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    } catch {
+      return 'N/A';
     }
   }
 
-  async deleteCategory(category: any): Promise<void> {
+  async deleteCategory(category: Category): Promise<void> {
     const result = await Swal.fire({
       title: 'Confirm Delete',
-      text: `Are you sure you want to delete category "${category.name}"?`,
+      text: `Are you sure you want to delete category "${category.category_name}"?`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#d33',
@@ -161,29 +239,115 @@ export class CategoriesComponent implements OnInit {
 
     try {
       const token = localStorage.getItem('TOKEN');
-      await axios.delete(
-        `${environment.server_url}/admin/categories/${category.id}`,
-        { headers: { 'Authorization': token } }
+      const categoryId = category._id;
+      if (!categoryId) {
+        this.popupService.AlertErrorDialog('Category ID not found', 'Error');
+        return;
+      }
+
+      const authHeader: string = token ? token : '';
+      const response = await axios.get<DeleteCategoryResponse>(
+        `${environment.server_url}/admin/categories/${categoryId}/delete`,
+        { headers: { Authorization: authHeader } }
       );
-      this.popupService.AlertSuccessDialog('Category deleted successfully', 'Success');
-      await this.loadCategories();
+
+      if (response.data.status) {
+        this.popupService.AlertSuccessDialog(
+          response.data.message || 'Category deleted successfully',
+          'Success'
+        );
+        await this.loadCategories();
+      } else {
+        const message = response.data.message || 'Failed to delete category';
+        this.popupService.AlertErrorDialog(message, 'Error');
+      }
     } catch (error: any) {
       console.error('Error deleting category:', error);
-      this.popupService.AlertErrorDialog(
-        error.response?.data?.message || 'Failed to delete category',
-        'Error'
-      );
+      if (error.response?.status === 401) {
+        this.popupService.AlertErrorDialog('Unauthorized access', 'Error');
+        localStorage.removeItem('TOKEN');
+        window.location.href = '/admin/login';
+      } else {
+        this.popupService.AlertErrorDialog(
+          error.response?.data?.message || 'Failed to delete category',
+          'Error'
+        );
+      }
     }
   }
+
+  refreshCategories(): void {
+    this.loadCategories();
+  }
+
+  get selectedColumnsLabel(): string {
+    if (this.selectedColumns.length === this.columns.length) {
+      return 'Showing all columns';
+    }
+
+    if (this.selectedColumns.length === 0) {
+      return 'No columns selected';
+    }
+
+    if (this.selectedColumns.length <= 2) {
+      return this.columns
+        .filter(column => this.selectedColumns.includes(column.value))
+        .map(column => column.label)
+        .join(', ');
+    }
+
+    return `${this.selectedColumns.length} columns visible`;
+  }
+
+  toggleColumnDropdown(event?: MouseEvent): void {
+    event?.stopPropagation();
+    this.isColumnDropdownOpen = !this.isColumnDropdownOpen;
+  }
+
+  onColumnOptionToggle(columnValue: ColumnKey, checked: boolean): void {
+    const isOnlyColumnSelected =
+      !checked &&
+      this.selectedColumns.length === 1 &&
+      this.selectedColumns.includes(columnValue);
+
+    if (isOnlyColumnSelected) {
+      return;
+    }
+
+    this.columnVisibility[columnValue] = checked;
+    this.updateSelectedColumns();
+  }
+
+  resetColumnSelection(): void {
+    this.columns.forEach(column => {
+      this.columnVisibility[column.value] = true;
+    });
+    this.updateSelectedColumns();
+    this.closeColumnDropdown();
+  }
+
+  private closeColumnDropdown(): void {
+    this.isColumnDropdownOpen = false;
+  }
+
+  private updateSelectedColumns(): void {
+    this.selectedColumns = this.columns
+      .filter(column => this.columnVisibility[column.value])
+      .map(column => column.value);
+  }
+
+  getRowNumber(index: number): number {
+    return (this.currentPage - 1) * this.pageSize + index + 1;
+  }
+
+  addCategory(): void {
+    this.router.navigate(['/admin/categories/create']);
+  }
+
+  editCategory(category: Category): void {
+    const categoryId = category._id;
+    if (!categoryId) return;
+    this.router.navigate(['/admin/categories', categoryId, 'edit']);
+  }
 }
-
-
-
-
-
-
-
-
-
-
 

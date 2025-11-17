@@ -32,7 +32,24 @@ interface DeleteProductResponse {
 interface Product extends IRubik {
   _id?: number;
   feature?: string;
-  category_id?: number;
+  // category_id comes from IRubik as string | undefined
+}
+
+interface CategoryOption {
+  _id: string;
+  category_name: string;
+}
+
+interface CategoriesListResponse {
+  status: boolean;
+  message: string;
+  data?: {
+    categories?: Array<{
+      _id?: string;
+      id?: number;
+      category_name?: string;
+    }>;
+  };
 }
 
 @Component({
@@ -60,6 +77,10 @@ export class ProductEditComponent implements OnInit {
   readonly maxAvatarSizeBytes = this.maxAvatarSizeMb * 1024 * 1024;
   private avatarDragDepth = 0;
 
+  categories: CategoryOption[] = [];
+  isLoadingCategories = false;
+  categoriesError = '';
+
   readonly fallbackAvatar =
     'https://gw.alipayobjects.com/zos/rmsportal/BiazfanxmamNRoxxVxka.png';
 
@@ -73,7 +94,8 @@ export class ProductEditComponent implements OnInit {
       name: ['', [Validators.required, Validators.minLength(1)]],
       description: ['', [Validators.required]],
       avatar: ['', [Validators.required]],
-      features: ['']
+      features: [''],
+      category_id: ['']
     });
   }
 
@@ -87,6 +109,7 @@ export class ProductEditComponent implements OnInit {
     }
 
     this.fetchProduct();
+    this.loadCategoriesForSelect();
   }
 
   get avatarPreview(): string {
@@ -100,6 +123,16 @@ export class ProductEditComponent implements OnInit {
 
   get disableReset(): boolean {
     return this.isSaving || !this.productForm.dirty;
+  }
+
+  get selectedCategoryLabel(): string {
+    const control = this.productForm.get('category_id');
+    const rawValue = control?.value as string | null | undefined;
+    if (!rawValue) {
+      return 'No category';
+    }
+    const match = this.categories.find(c => c._id === rawValue);
+    return match ? match.category_name : 'No category';
   }
 
   async fetchProduct(): Promise<void> {
@@ -130,7 +163,8 @@ export class ProductEditComponent implements OnInit {
         name: product.name || '',
         description: product.description || '',
         avatar: product.avatar || '',
-        features: product.feature ?? product.features ?? ''
+        features: product.feature ?? product.features ?? '',
+        category_id: product.category_id ?? ''
       });
       this.productForm.markAsPristine();
       this.initialFormValue = this.productForm.getRawValue();
@@ -156,6 +190,54 @@ export class ProductEditComponent implements OnInit {
       this.loadError = error.response?.data?.message || error.message || 'Failed to load product details';
     } finally {
       this.isLoading = false;
+    }
+  }
+
+  private async loadCategoriesForSelect(): Promise<void> {
+    this.isLoadingCategories = true;
+    this.categoriesError = '';
+
+    try {
+      const token = localStorage.getItem('TOKEN') ?? '';
+      const params = new URLSearchParams();
+      params.append('page', '1');
+      params.append('limit', '1000');
+
+      const response = await axios.get<CategoriesListResponse>(
+        `${environment.server_url}/admin/categories?${params.toString()}`,
+        {
+          headers: { Authorization: token }
+        }
+      );
+
+      if (response.data?.status && response.data.data?.categories) {
+        this.categories = response.data.data.categories
+          .filter(c => !!c._id && !!c.category_name)
+          .map(c => ({
+            _id: c._id as string,
+            category_name: c.category_name as string
+          }));
+      } else {
+        this.categoriesError =
+          response.data?.message || 'Failed to load categories';
+      }
+    } catch (error: any) {
+      console.error('Error loading categories for product edit:', error);
+
+      if (error.response?.status === 401) {
+        this.popupService.AlertErrorDialog(
+          'Session expired. Please log in again.',
+          'Unauthorized'
+        );
+        localStorage.removeItem('TOKEN');
+        this.router.navigate(['/admin/login']);
+        return;
+      }
+
+      this.categoriesError =
+        error.response?.data?.message || 'Failed to load categories';
+    } finally {
+      this.isLoadingCategories = false;
     }
   }
 
@@ -191,7 +273,8 @@ export class ProductEditComponent implements OnInit {
           name: updatedProduct.name || '',
           description: updatedProduct.description || '',
           avatar: updatedProduct.avatar || '',
-          features: updatedProduct.feature ?? updatedProduct.features ?? ''
+          features: updatedProduct.feature ?? updatedProduct.features ?? '',
+          category_id: updatedProduct.category_id ?? ''
         });
         this.productForm.markAsPristine();
         this.initialFormValue = this.productForm.getRawValue();
@@ -431,6 +514,10 @@ export class ProductEditComponent implements OnInit {
     }
     if (typeof value['features'] !== 'undefined') {
       payload['feature'] = value['features']?.trim() || null;
+    }
+    if (typeof value['category_id'] !== 'undefined') {
+      const raw = (value['category_id'] ?? '').toString().trim();
+      payload['category_id'] = raw || null;
     }
 
     return payload;

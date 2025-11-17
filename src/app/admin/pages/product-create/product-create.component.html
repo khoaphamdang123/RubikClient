@@ -169,15 +169,26 @@
           <div>
             <p class="section-eyebrow">Optional</p>
             <h2>Category metadata</h2>
-            <p>Provide a numeric category ID to group the product. Leave blank to skip.</p>
+            <p>Select a category to group the product. Leave as “No category” to skip.</p>
           </div>
         </div>
 
         <div class="fields-grid two-col">
           <div class="form-field">
-            <label>Category ID</label>
-            <input type="text" formControlName="category_id" placeholder="101" inputmode="numeric" />
-            <p class="field-hint">Server expects an integer. We validate before submitting.</p>
+            <label>Category</label>
+            <select formControlName="category_id">
+              <option [ngValue]="''">No category</option>
+              <option
+                *ngFor="let category of categories"
+                [ngValue]="category._id">
+                {{ category.category_name }}
+              </option>
+            </select>
+            <p class="field-hint">
+              Choose a category by name. We will submit its internal ID to the API.
+            </p>
+            <p class="field-hint" *ngIf="isLoadingCategories">Loading categories…</p>
+            <div class="field-error" *ngIf="categoriesError">{{ categoriesError }}</div>
             <div class="field-error" *ngIf="controlInvalid('category_id')">
               {{ controlErrorMessage('category_id') }}
             </div>
@@ -227,7 +238,7 @@
             <h3>{{ createForm.get('name')?.value || 'New product' }}</h3>
             <p>{{ createForm.get('feature')?.value || 'Feature pending' }}</p>
             <div class="mini-tags">
-              <span>{{ createForm.get('category_id')?.value || 'No category' }}</span>
+              <span>{{ selectedCategoryLabel }}</span>
               <span>{{ createForm.get('description')?.value ? 'Description ready' : 'Description TBD' }}</span>
             </div>
           </div>

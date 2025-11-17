@@ -126,6 +126,13 @@ export class AdminLayoutComponent implements OnInit, OnDestroy {
     this.router.navigate(['/login']);
   }
 
+   signOutAdmin()
+  {
+    localStorage.removeItem("TOKEN");
+    this.closeMobileMenu();
+    this.router.navigate(["/admin/login"]);    
+  }
+
   navigateToClient(): void {
     this.router.navigate(['/products']);
   }

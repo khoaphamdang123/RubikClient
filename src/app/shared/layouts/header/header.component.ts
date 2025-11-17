@@ -122,8 +122,9 @@ export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy
     localStorage.removeItem("TOKEN");
     this.closeDropdown();
     this.closeMobileMenu();
-    this.router.navigate(["/admin/login"]);    
-  }
+    this.router.navigate(["/login"]);    
+  }  
+
   
   navigateProfile()
   {
@@ -131,7 +132,7 @@ export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy
       const route = `/profile/${this.user.username}`;
       this.closeDropdown();      
       this.closeMobileMenu();      
-      this.router.navigate([route]);      
+      this.router.navigate([route]);            
     }
   }
 
@@ -141,7 +142,7 @@ export class HeaderComponent implements OnInit, AfterViewInit, OnDestroy
       const route = `/device/${this.user.username}`;
       this.closeDropdown();
       this.closeMobileMenu();
-      this.router.navigate([route]);      
+      this.router.navigate([route]);       
     }
   }
 

@@ -1,0 +1,137 @@
+<div class="category-edit-shell">
+  <div class="page-header glass">
+    <div class="breadcrumbs">
+      <button type="button" class="back-link" (click)="goBack()">← Back to categories</button>
+      <span>/</span>
+      <span>Edit category</span>
+    </div>
+    <div class="header-main">
+      <div>
+        <p class="eyebrow">Category management</p>
+        <h1>Edit {{ categoryForm.value.name || categoryData?.category_name || 'category' }}</h1>
+        <p>Review category details and keep the catalog tidy and easy to browse.</p>
+        <div class="quick-meta">
+          <div>
+            <span>Category ID</span>
+            <strong>{{ categoryData?._id || '—' }}</strong>
+          </div>
+          <div>
+            <span>Category name</span>
+            <strong>{{ categoryForm.value.name || 'Name pending' }}</strong>
+          </div>
+          <div>
+            <span>Last sync</span>
+            <strong>{{ lastSyncedAt ? (lastSyncedAt | date: 'short') : 'Pending' }}</strong>
+          </div>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button type="button" class="btn ghost" (click)="resetChanges()" [disabled]="disableReset">
+          Reset
+        </button>
+        <button type="button" class="btn primary" (click)="saveChanges()" [disabled]="disableSave">
+          <span *ngIf="!isSaving">Save changes</span>
+          <span *ngIf="isSaving">Saving…</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="isLoading" class="state-card glass">
+    <div class="loader"></div>
+    <p>Loading category details…</p>
+  </div>
+
+  <div *ngIf="loadError && !isLoading" class="state-card glass error">
+    <p>{{ loadError }}</p>
+    <div class="state-actions">
+      <button type="button" class="btn primary" (click)="fetchCategory()">Try again</button>
+      <button type="button" class="btn ghost" (click)="goBack()">Back to list</button>
+    </div>
+  </div>
+
+  <div *ngIf="!isLoading && !loadError" class="content-grid">
+    <div class="server-summary glass" *ngIf="serverMessage">
+      <div>
+        <p class="eyebrow">Server response</p>
+        <h2>{{ serverMessage }}</h2>
+        <p>The latest data snapshot was retrieved from the admin API.</p>
+      </div>
+      <div class="server-meta">
+        <div>
+          <span>Last sync</span>
+          <strong>{{ lastSyncedAt ? (lastSyncedAt | date: 'medium') : 'Just now' }}</strong>
+        </div>
+        <div>
+          <span>Category ID</span>
+          <strong>{{ categoryData?._id || 'Unknown' }}</strong>
+        </div>
+      </div>
+    </div>
+
+    <section class="form-panel glass">
+      <form [formGroup]="categoryForm" (ngSubmit)="saveChanges()" novalidate>
+        <div class="form-section">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Category</p>
+              <h2>Basic details</h2>
+              <p>Control how this category appears everywhere in the admin.</p>
+            </div>
+          </div>
+
+          <div class="field-grid">
+            <label class="form-field">
+              <span>Category name</span>
+              <input type="text" formControlName="name" placeholder="Enter category name" />
+              <small class="error" *ngIf="controlInvalid('name')">Category name is required.</small>
+            </label>
+
+            <label class="form-field">
+              <span>Description</span>
+              <textarea formControlName="description" rows="4" placeholder="Add a short description"></textarea>
+              <small class="hint">Optional but helps admins understand why this category exists.</small>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-actions mobile">
+          <button type="button" class="btn ghost" (click)="resetChanges()" [disabled]="disableReset">
+            Reset
+          </button>
+          <button type="submit" class="btn primary" [disabled]="disableSave">
+            <span *ngIf="!isSaving">Save changes</span>
+            <span *ngIf="isSaving">Saving…</span>
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <aside class="context-panel">
+      <div class="meta-card glass">
+        <div class="meta-row">
+          <span>Category ID</span>
+          <strong>{{ categoryData?._id || '—' }}</strong>
+        </div>
+        <div class="meta-row">
+          <span>Created</span>
+          <strong>{{ formatDate(categoryData?.createdAt) }}</strong>
+        </div>
+        <div class="meta-row">
+          <span>Updated</span>
+          <strong>{{ formatDate(categoryData?.updatedAt) }}</strong>
+        </div>
+        <button type="button" class="btn outline" (click)="refresh()">Refresh data</button>
+      </div>
+
+      <div class="summary-card glass">
+        <p class="eyebrow">Preview</p>
+        <h3>{{ categoryForm.value.name || 'Category name' }}</h3>
+        <p class="summary-description">
+          {{ categoryForm.value.description || 'No description provided yet.' }}
+        </p>
+      </div>
+    </aside>
+  </div>
+</div>
+

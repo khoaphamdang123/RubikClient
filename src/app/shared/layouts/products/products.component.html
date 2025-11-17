@@ -50,16 +50,21 @@
       <div class="filter-section">
         <h2 class="filter-section-title">Categories</h2>
         <div class="filter-options">
-          @for(option of filter_options; track $index) {
-            <label class="filter-checkbox-label">
-              <input 
-                type="checkbox" 
-                [checked]="option.checked" 
-                (change)="toggleCheckBox(option)"
-                [attr.aria-label]="option.name">
-              <span class="checkbox-custom"></span>
-              <span class="filter-label-text">{{option.name}}</span>
-            </label>
+          @if(filter_options.length === 0) {
+            <p class="filter-empty-text">No categories available.</p>
+          } @else {
+
+            @for(option of filter_options; track option._id) {
+              <label class="filter-checkbox-label">
+                <input 
+                  type="checkbox" 
+                  [checked]="option.checked" 
+                  (change)="toggleCheckBox(option)"
+                  [attr.aria-label]="option.category_name">
+                <span class="checkbox-custom"></span>
+                <span class="filter-label-text">{{ option.category_name }}</span>
+              </label>
+            }
           }
         </div>
       </div>

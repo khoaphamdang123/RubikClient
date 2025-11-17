@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import {
   AbstractControl,
   FormBuilder,
@@ -27,7 +27,24 @@ interface ProductRecord {
   description: string;
   avatar: string;
   feature: string;
-  category_id?: number;
+  category_id?: string;
+}
+
+interface CategoryOption {
+  _id: string;
+  category_name: string;
+}
+
+interface CategoriesListResponse {
+  status: boolean;
+  message: string;
+  data?: {
+    categories?: Array<{
+      _id?: string;
+      id?: number;
+      category_name?: string;
+    }>;
+  };
 }
 
 interface CreateProductPayload {
@@ -35,7 +52,8 @@ interface CreateProductPayload {
   description: string;
   avatar: string;
   feature: string;
-  category_id?: number;
+  // Send category ObjectId string when a category is selected
+  category_id?: string;
 }
 
 @Component({
@@ -45,7 +63,7 @@ interface CreateProductPayload {
   templateUrl: './product-create.component.html',
   styleUrl: './product-create.component.scss'
 })
-export class ProductCreateComponent {
+export class ProductCreateComponent implements OnInit {
   readonly fallbackAvatar =
     'https://gw.alipayobjects.com/zos/rmsportal/BiazfanxmamNRoxxVxka.png';
   readonly avatarSuggestions = [
@@ -70,6 +88,10 @@ export class ProductCreateComponent {
   isAvatarDropActive = false;
   private avatarDragDepth = 0;
 
+  categories: CategoryOption[] = [];
+  isLoadingCategories = false;
+  categoriesError = '';
+
   constructor(
     private fb: FormBuilder,
     private router: Router,
@@ -80,8 +102,63 @@ export class ProductCreateComponent {
       description: ['', [Validators.required, Validators.minLength(10)]],
       feature: ['', [Validators.required, Validators.minLength(3)]],
       avatar: ['', Validators.required],
-      category_id: ['', [Validators.pattern(/^\d*$/)]]
+      category_id: ['']
     });
+  }
+
+  ngOnInit(): void {
+    this.loadCategoriesForSelect();
+  }
+
+  private async loadCategoriesForSelect(): Promise<void> {
+    this.isLoadingCategories = true;
+    this.categoriesError = '';
+
+    try {
+      const token = localStorage.getItem('TOKEN') ?? '';
+      const params = new URLSearchParams();
+      params.append('page', '1');
+      params.append('limit', '1000');
+
+      const response = await axios.get<CategoriesListResponse>(
+        `${environment.server_url}/admin/categories?${params.toString()}`,
+        {
+          headers: {
+            Authorization: token
+          }
+        }
+      );
+
+      if (response.data?.status && response.data.data?.categories) {
+        // Map categories to a minimal shape for the select dropdown
+        this.categories = response.data.data.categories
+          .filter(c => !!c._id && !!c.category_name)
+          .map(c => ({
+            _id: c._id as string,
+            category_name: c.category_name as string
+          }));
+      } else {
+        this.categoriesError =
+          response.data?.message || 'Failed to load categories';
+      }
+    } catch (error: any) {
+      console.error('Error loading categories for product create:', error);
+
+      if (error.response?.status === 401) {
+        this.popupService.AlertErrorDialog(
+          'Session expired. Please log in again.',
+          'Unauthorized'
+        );
+        localStorage.removeItem('TOKEN');
+        this.router.navigate(['/admin/login']);
+        return;
+      }
+
+      this.categoriesError =
+        error.response?.data?.message || 'Failed to load categories';
+    } finally {
+      this.isLoadingCategories = false;
+    }
   }
 
   get completionPercent(): number {
@@ -124,6 +201,16 @@ export class ProductCreateComponent {
       return 'Category ID must be a whole number';
     }
     return 'Invalid value';
+  }
+
+  get selectedCategoryLabel(): string {
+    const control = this.createForm.get('category_id');
+    const rawValue = control?.value as string | null | undefined;
+    if (!rawValue) {
+      return 'No category';
+    }
+    const match = this.categories.find(c => c._id === rawValue);
+    return match ? match.category_name : 'No category';
   }
 
   async submit(): Promise<void> {
@@ -193,7 +280,7 @@ export class ProductCreateComponent {
         'Limited edition speed cube engineered for stability and ultra-fast solves.',
       feature: 'Magnetic core · Frosted surface · Adjustable elasticity',
       avatar: this.avatarSuggestions[0],
-      category_id: '101'
+      category_id: ''
     });
     this.avatarInputMode = 'url';
     this.avatarFileName = '';
@@ -332,15 +419,9 @@ export class ProductCreateComponent {
       avatar: (value['avatar'] ?? '').toString().trim()
     };
 
-    const categoryRaw = value['category_id']?.toString().trim();
-    if (categoryRaw) {
-      const parsed = Number(categoryRaw);
-      if (!Number.isInteger(parsed)) {
-        this.createForm.get('category_id')?.setErrors({ integer: true });
-        this.createForm.markAsTouched();
-        return null;
-      }
-      payload.category_id = parsed;
+    const categoryValue = (value['category_id'] ?? '').toString().trim();
+    if (categoryValue) {
+      payload.category_id = categoryValue;
     }
 
     return payload;

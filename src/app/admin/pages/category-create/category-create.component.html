@@ -1,0 +1,65 @@
+<section class="category-create-shell">
+  <div class="page-header">
+    <div class="breadcrumb">
+      <span class="crumb" (click)="cancel()">Categories</span>
+      <span class="crumb-separator">/</span>
+      <span class="crumb current">Create</span>
+    </div>
+    <h2>Create New Category</h2>
+    <p>Add a new category to organize your products.</p>
+  </div>
+
+  <div class="content-grid">
+    <div class="form-card glass">
+      <form (ngSubmit)="createCategory()" novalidate>
+        <div class="form-group">
+          <label for="categoryName">Category Name</label>
+          <input
+            id="categoryName"
+            type="text"
+            [(ngModel)]="categoryName"
+            name="categoryName"
+            placeholder="Enter category name"
+            [disabled]="isSaving"
+            required
+          />
+        </div>
+
+        <div *ngIf="error" class="error-banner">
+          <span class="error-icon">⚠️</span>
+          <span class="error-text">{{ error }}</span>
+        </div>
+
+        <div class="form-actions">
+          <button
+            type="button"
+            class="btn-secondary"
+            (click)="cancel()"
+            [disabled]="isSaving">
+            Cancel
+          </button>
+          <button
+            type="submit"
+            class="btn-primary"
+            [disabled]="isSaving">
+            <span *ngIf="!isSaving">Create Category</span>
+            <span *ngIf="isSaving">Creating…</span>
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <aside class="info-card glass">
+      <h3>Tips</h3>
+      <ul>
+        <li>Choose a clear, descriptive name.</li>
+        <li>Category names must be unique (case-insensitive).</li>
+        <li>You can edit or delete this category later from the categories list.</li>
+      </ul>
+    </aside>
+  </div>
+</section>
+
+
+
+

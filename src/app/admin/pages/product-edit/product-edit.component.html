@@ -122,6 +122,25 @@
             </label>
           </div>
 
+          <div class="field-grid one">
+            <label class="form-field">
+              <span>Edit category</span>
+              <select formControlName="category_id">
+                <option [ngValue]="''">No category</option>
+                <option
+                  *ngFor="let category of categories"
+                  [ngValue]="category._id">
+                  {{ category.category_name }}
+                </option>
+              </select>
+              <small>
+                Choose a category to associate this product with. We’ll submit its internal ID to the API.
+              </small>
+              <small *ngIf="isLoadingCategories">Loading categories…</small>
+              <small class="error" *ngIf="categoriesError">{{ categoriesError }}</small>
+            </label>
+          </div>
+
           <div class="avatar-designer glass">
             <div class="avatar-designer-head">
               <div>
@@ -208,6 +227,10 @@
         <div class="meta-row">
           <span>Has features</span>
           <strong>{{ productForm.value.features ? 'Yes' : 'No' }}</strong>
+        </div>
+        <div class="meta-row">
+          <span>Category</span>
+          <strong>{{ selectedCategoryLabel }}</strong>
         </div>
         <button type="button" class="btn outline" (click)="refresh()">Refresh data</button>
       </div>

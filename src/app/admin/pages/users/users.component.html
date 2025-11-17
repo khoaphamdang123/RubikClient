@@ -208,6 +208,14 @@
                   </button>
                   <button
                     type="button"
+                    class="action-btn secondary"
+                    (click)="resetPassword(user)"
+                    title="Reset Password">
+                    <span class="action-icon">🔑</span>
+                    <span>Reset</span>
+                  </button>
+                  <button
+                    type="button"
                     class="action-btn danger"
                     (click)="deleteUser(user)"
                     title="Delete User">

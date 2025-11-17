@@ -30,25 +30,74 @@ export class HandleService {
     const headerValue = raw?.startsWith('Bearer ') ? raw : (raw ? `${raw}` : '');
     return { Authorization: headerValue };
   }
-  async getAllRubiks()
-   {
-    var response=await axios.get(`${environment.server_url}/get-rubik`,{headers:this.authHeader()}).then((res)=>
-   {
-  this.rubiks=res.data.list;
-  return this.rubiks;
-    }).catch(err=>{
-    if(err!=null)
-    {
-      if(err.response.status==401)
-      {
-       localStorage.removeItem("TOKEN");
-       this.route.navigate(['/login']);  
-       this.popupService.AlertErrorDialog(err.response.data.message,"Get data failed");
-      }
+
+  private buildAuthConfig() {
+    const token = this.getToken();
+    return token ? { headers: this.authHeader() } : undefined;
+  }
+
+  private mapToRubikList(payload: any): IRubik[] {
+    if (!payload) {
+      return [];
     }
-    });
-    return this.rubiks;
-   }
+
+    if (Array.isArray(payload.list)) {
+      return payload.list;
+    }
+
+    const data = (payload as any)?.data;
+
+    if (Array.isArray(data)) {
+      return data;
+    }
+
+    if (data && Array.isArray(data.products)) {
+      return data.products;
+    }
+
+    if (Array.isArray(payload.products)) {
+      return payload.products;
+    }
+
+    return [];
+  }
+
+  private handleProductLoadError(error: any): void {
+    console.error('Error fetching products list:', error);
+    if (error?.response?.status === 401) {
+      localStorage.removeItem("TOKEN");
+      this.route.navigate(['/login']);
+    }
+    const message = error?.response?.data?.message || 'Get data failed';
+    this.popupService.AlertErrorDialog(message,"Get data failed");
+  }
+
+  async getAllRubiks(): Promise<IRubik[]> {
+    const config = this.buildAuthConfig();
+    try {
+      const primaryResponse = await axios.get(
+        `${environment.server_url}/products`,
+        config
+      );
+
+      let rubikList = this.mapToRubikList(primaryResponse.data);
+
+      if (!rubikList.length) {
+        const fallbackResponse = await axios.get(
+          `${environment.server_url}/get-rubik`,
+          config
+        );
+        rubikList = this.mapToRubikList(fallbackResponse.data);
+      }
+
+      this.rubiks = rubikList;
+      return this.rubiks;
+    } catch (error) {
+      this.handleProductLoadError(error);
+      this.rubiks = [];
+      return this.rubiks;
+    }
+  }
 
    async checkProductToken()
    {

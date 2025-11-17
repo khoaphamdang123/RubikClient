@@ -2,9 +2,30 @@ import { Component, OnInit } from '@angular/core';
 import { HandleService } from '../../../../services/handle.service';
 import { IRubik } from '../../../models/item.model';
 import { ItemsComponent } from '../../../pages/items/items.component';
-import { IOption } from '../../../models/option.model';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import axios from 'axios';
+import { environment } from '../../../../environments/environment';
+
+interface CategoryFilterOption {
+  _id?: string;
+  id?: string;
+  category_name: string;
+  checked: boolean;
+}
+
+interface CategoryResponseItem {
+  _id?: string;
+  id?: number | string;
+  category_name?: string;
+  name?: string;
+}
+
+interface CategoriesListResponse {
+  status: boolean;
+  message: string;
+  data?: CategoryResponseItem[];
+}
 
 @Component({
   selector: 'app-products',
@@ -19,13 +40,8 @@ export class ProductsComponent implements OnInit {
     filteredRubikList:IRubik[]=[];
     displayedRubikList:IRubik[]=[];
     
-    filter_options:IOption[]=[
-      {name:'Core Cubes',checked:false},
-      {name:'Novelty Puzzles',checked:false},
-      {name:'Multiplayer Games',checked:false},
-      {name:'Speed Cubes',checked:false},
-      {name:'Bundles',checked:false},
-    ]
+    // Category filters loaded dynamically from the database
+    filter_options: CategoryFilterOption[] = [];
     
     searchQuery:string = '';
     sortOption:string = 'default';
@@ -48,7 +64,7 @@ export class ProductsComponent implements OnInit {
         this.getAllRubik();
      }
      
-     toggleCheckBox(option:IOption)
+     toggleCheckBox(option: CategoryFilterOption)
      {
       option.checked=!option.checked;
       this.applyFilters();
@@ -90,16 +106,13 @@ export class ProductsComponent implements OnInit {
          );
        }
        
-       // Apply category filters
+       // Apply category filters based on category IDs or, as a fallback,
+       // by matching category names in the product metadata.
        const checkedFilters = this.filter_options.filter(opt => opt.checked);
-       if(checkedFilters.length > 0)
-       {
-         filtered = filtered.filter(rubik => {
-           return checkedFilters.some(filter => 
-             rubik.name.toLowerCase().includes(filter.name.toLowerCase()) ||
-             rubik.description.toLowerCase().includes(filter.name.toLowerCase())
-           );
-         });
+       if (checkedFilters.length > 0) {
+         filtered = filtered.filter(rubik =>
+           checkedFilters.some(filter => this.productMatchesCategory(rubik, filter))
+         );
        }
        
        this.filteredRubikList = filtered;
@@ -122,21 +135,88 @@ export class ProductsComponent implements OnInit {
            // Keep original order
            break;
        }
-       
-       this.displayedRubikList = sorted;
+       this.displayedRubikList = sorted;       
      }
      
-     async getAllRubik()
-     {
+    async getAllRubik()
+    {
+      try {
+        this.isLoading = true;
+        this.rubik_list = await this.handleService.getAllRubiks();
+        this.filteredRubikList = [...this.rubik_list];
+        this.displayedRubikList = [...this.rubik_list];
+      } catch(error) {
+        console.error('Error loading products:', error);
+      } finally {
+        this.isLoading = false;         
+      }
+
+      // Load categories separately so product rendering isn't blocked
+      this.loadCategoriesForFilter().catch(err => {
+        console.error('Error loading categories for filters:', err);
+      });
+    }
+
+     private normalizeCategoryId(value?: string | number | null): string | null {
+       if (value === null || value === undefined) {
+         return null;
+       }
+       return value.toString().trim() || null;
+     }
+
+     private productMatchesCategory(rubik: IRubik, filter: CategoryFilterOption): boolean {
+       const normalizedProductCategoryId = this.normalizeCategoryId(rubik.category_id);
+       const normalizedObjectId = this.normalizeCategoryId(filter._id);
+       const normalizedNumericId = this.normalizeCategoryId(filter.id);
+
+       if (normalizedProductCategoryId) {
+         if (
+           (normalizedObjectId && normalizedObjectId === normalizedProductCategoryId) ||
+           (normalizedNumericId && normalizedNumericId === normalizedProductCategoryId)
+         ) {
+           return true;
+         }
+       }
+
+       const haystack =
+         `${rubik.name} ${rubik.description} ${rubik.features ?? ''} ${rubik.feature ?? ''}`.toLowerCase();
+       return haystack.includes(filter.category_name.toLowerCase());
+     }
+
+     private async loadCategoriesForFilter(): Promise<void> {
        try {
-         this.isLoading = true;
-         this.rubik_list = await this.handleService.getAllRubiks();
-         this.filteredRubikList = [...this.rubik_list];
-         this.displayedRubikList = [...this.rubik_list];
-       } catch(error) {
-         console.error('Error loading products:', error);
-       } finally {
-         this.isLoading = false;
+        const token = localStorage.getItem('TOKEN') ?? '';
+
+        const response = await axios.get<CategoriesListResponse>(
+          `${environment.server_url}/categories`,
+          token
+            ? {
+                headers: {
+                  Authorization: token
+                }
+              }
+            : undefined
+        );
+
+        if (response.data?.status && Array.isArray(response.data.data)) {
+          this.filter_options = response.data.data
+            .filter(c => {
+              const hasDisplayName = c.category_name?.trim() ?? 'noo';
+              return !!hasDisplayName && (c._id !== 'undefined');
+            })
+             .map(c => ({
+               _id: c._id,
+               id: typeof c.id !== 'undefined' ? c.id?.toString() : undefined,
+              category_name: (c.category_name ?? c.name ?? '').trim(),
+               checked: false
+             }));
+         } else {
+          console.warn('Categories response did not include data array');
+           this.filter_options = [];           
+         }
+       } catch (error) {
+         console.error('Error loading categories for product filters:', error);
+         this.filter_options = [];
        }
      }
      
@@ -145,7 +225,7 @@ export class ProductsComponent implements OnInit {
     }
     
     get activeFilterCount(): number {
-      return this.filter_options.filter(opt => opt.checked).length;
+      return this.filter_options.filter(opt => opt.checked).length;            
     }
     
     get resultCount(): number {

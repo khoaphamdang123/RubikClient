@@ -6,5 +6,6 @@ export interface IRubik
     avatar:string;
     features:string;
     feature?:string;
-    category_id?:number;
+    // Category reference uses MongoDB ObjectId string
+    category_id?:string;
 }

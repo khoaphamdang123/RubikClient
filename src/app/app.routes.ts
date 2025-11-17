@@ -23,6 +23,8 @@ import { ProductsComponent as AdminProductsComponent } from './admin/pages/produ
 import { ProductEditComponent } from './admin/pages/product-edit/product-edit.component';
 import { ProductCreateComponent } from './admin/pages/product-create/product-create.component';
 import { CategoriesComponent } from './admin/pages/categories/categories.component';
+import { CategoryCreateComponent } from './admin/pages/category-create/category-create.component';
+import { CategoryEditComponent } from './admin/pages/category-edit/category-edit.component';
 import { RubikSolvesComponent } from './admin/pages/rubik-solves/rubik-solves.component';
 import { AdminLoginComponent } from './admin/pages/admin-login/admin-login.component';
 import { adminGuard } from './admin/guards/admin.guard';
@@ -57,6 +59,8 @@ export const routes: Routes = [
             {path:'products/create',component:ProductCreateComponent},
             {path:'products/:id/edit',component:ProductEditComponent},
             {path:'products',component:AdminProductsComponent},
+            {path:'categories/create',component:CategoryCreateComponent},
+            {path:'categories/:id/edit',component:CategoryEditComponent},
             {path:'categories',component:CategoriesComponent},
             {path:'rubik-solves',component:RubikSolvesComponent}
         ]

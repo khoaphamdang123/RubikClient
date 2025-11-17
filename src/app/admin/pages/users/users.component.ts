@@ -33,6 +33,11 @@ interface DeleteUserResponse {
   message: string;
 }
 
+interface ResetPasswordResponse {
+  status: boolean;
+  message: string;
+}
+
 type ColumnKey = 'id' | 'user' | 'email' | 'role' | 'gender' | 'joinedDate';
 
 interface CreateUserResponse {
@@ -349,6 +354,76 @@ export class UsersComponent implements OnInit {
       }
     }
   }
+
+  resetPassword = async (user: AdminUser): Promise<void> => {
+    const result = await Swal.fire({
+      title: 'Reset Password',
+      html:
+        `<p style="margin-bottom: 8px;">Enter a new password for <strong>${user.username}</strong></p>` +
+        '<input id="swal-new-password" class="swal2-input" type="password" placeholder="New password">' +
+        '<input id="swal-confirm-password" class="swal2-input" type="password" placeholder="Confirm password">',
+      focusConfirm: false,
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Reset',
+      preConfirm: () => {
+        const passwordInput = document.getElementById('swal-new-password') as HTMLInputElement | null;
+        const confirmInput = document.getElementById('swal-confirm-password') as HTMLInputElement | null;
+
+        const password = passwordInput?.value.trim() ?? '';
+        const confirm = confirmInput?.value.trim() ?? '';
+
+        if (!password || !confirm) {
+          Swal.showValidationMessage('Please enter and confirm the new password');
+          return null;
+        }
+
+        if (password !== confirm) {
+          Swal.showValidationMessage('Passwords do not match');
+          return null;
+        }
+
+        return { password };
+      }
+    });
+
+    if (!result.isConfirmed || !result.value) {
+      return;
+    }
+
+    const { password } = result.value as { password: string };
+
+    try {
+      const payload = {
+        phone: user.phone,
+        password
+      };
+
+      const response = await axios.post<ResetPasswordResponse>(
+        `${environment.server_url}/reset-password`,
+        payload
+      );
+
+      if (response.data.status) {
+        this.popupService.AlertSuccessDialog(
+          response.data.message || 'Reset password successfully',
+          'Password Reset'
+        );
+      } else {
+        const message = response.data.message || 'Failed to reset password';
+        this.popupService.AlertErrorDialog(message, 'Error');
+      }
+    } catch (error: any) {
+      console.error('Error resetting password:', error);
+      const message =
+        error.response?.data?.message ||
+        (error.response?.status === 400
+          ? 'Password is not strong enough or phone number is invalid.'
+          : 'Failed to reset password');
+      this.popupService.AlertErrorDialog(message, 'Error');
+    }
+  };
 
   refreshUsers(): void {
     this.loadUsers();
