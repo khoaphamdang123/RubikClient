@@ -98,9 +98,11 @@ $success-green: #10b981;
   color: $text-white;
   transition: all 0.3s ease;
 
-  @media (max-width: 640px) {
+  @media (max-width: 640px) 
+  {
     gap: 0.5rem;
   }
+
 
   &:hover {
     opacity: 0.9;

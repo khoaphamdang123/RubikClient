@@ -1,0 +1,408 @@
+<section class="rubik-type-shell">
+  <div class="loading-overlay" *ngIf="isListLoading">
+    <div class="loading-card">
+      <div class="glow"></div>
+      <div class="spinner"></div>
+      <p>Loading rubik types…</p>
+    </div>
+  </div>
+
+  <div class="rubik-type-grid" [class.dimmed]="isListLoading">
+    <header class="hero-header glass">
+      <div class="hero-intro">
+        <div class="hero-badge">All Rubik Types</div>
+        <h2>Rubik Type Management</h2>
+        <p>
+          Audit every rubik taxonomy, adjust visibility, and keep linked products in sync — all without leaving this page.
+        </p>
+      </div>
+      <div class="hero-actions">
+        <button type="button" class="action-btn primary" (click)="navigateToCreate()" [disabled]="isListLoading">
+          <span class="action-icon">➕</span>
+          Add Type
+        </button>
+        <button type="button" class="refresh-btn" (click)="refreshTable()" [disabled]="isListLoading">
+          <span class="refresh-icon" aria-hidden="true">↻</span>
+          Refresh
+        </button>
+      </div>
+    </header>
+
+    <div *ngIf="listError && !isListLoading" class="error-state glass">
+      <div class="error-copy">
+        <div class="error-icon">⚠️</div>
+        <h3>Unable to load rubik types</h3>
+        <p>{{ listError }}</p>
+      </div>
+      <button type="button" class="refresh-btn" (click)="refreshTable()">
+        <span class="refresh-icon" aria-hidden="true">↻</span>
+        Retry
+      </button>
+    </div>
+
+    <section class="filters-section glass" *ngIf="!listError">
+      <div class="filters-grid">
+        <div class="filter-group search">
+          <label class="filter-label">Search Rubik Types</label>
+          <div class="search-input-wrapper">
+            <span class="search-icon">🔍</span>
+            <input
+              type="text"
+              class="search-input"
+              placeholder="Search by name or description..."
+              [(ngModel)]="filters.searchTerm"
+              (keyup.enter)="onSearch()"
+              (blur)="onSearch()"
+              [disabled]="isListLoading" />
+            <button type="button" class="search-btn" (click)="onSearch()" [disabled]="isListLoading">
+              Search
+            </button>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <label class="filter-label">Sort by</label>
+          <select class="filter-select" [(ngModel)]="filters.sortBy" (change)="applyFilters()" [disabled]="isListLoading">
+            <option value="newest">Newest first</option>
+            <option value="oldest">Oldest first</option>
+            <option value="nameAsc">Name A → Z</option>
+            <option value="nameDesc">Name Z → A</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label class="filter-label">Items per page</label>
+          <select class="filter-select" [(ngModel)]="pageSize" (change)="onPageSizeChange()" [disabled]="isListLoading">
+            <option *ngFor="let size of pageSizeOptions" [value]="size">{{ size }}</option>
+          </select>
+        </div>
+
+        <div class="filter-group quick-actions">
+          <label class="filter-label">Quick actions</label>
+          <div class="filter-actions">
+            <button type="button" class="action-btn ghost" (click)="resetFilters()" [disabled]="isListLoading">
+              Clear filters
+            </button>
+            <button type="button" class="action-btn ghost" (click)="refreshTable()" [disabled]="isListLoading">
+              Sync data
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="stats-summary glass" *ngIf="pagination && !listError">
+      <div class="stat-item">
+        <span class="stat-label">Total rubik types</span>
+        <span class="stat-value">{{ pagination.totalItems | number }}</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Current page</span>
+        <span class="stat-value">{{ pagination.currentPage }} / {{ pagination.totalPages }}</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Showing now</span>
+        <span class="stat-value">{{ rubikTypes.length }} types</span>
+      </div>
+    </section>
+
+    <div class="rubik-types-table-container" *ngIf="!listError">
+      <div *ngIf="rubikTypes.length === 0 && !isListLoading" class="empty-state glass">
+        <div class="empty-icon">🧱</div>
+        <h3>No rubik types found</h3>
+        <p>No results match your current search or filter selection.</p>
+        <button type="button" class="refresh-btn" (click)="resetFilters()">
+          Clear filters
+        </button>
+      </div>
+
+      <div *ngIf="rubikTypes.length > 0" class="table-wrapper glass">
+        <table class="rubik-types-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Rubik Type</th>
+              <th>Variations</th>
+              <th>Updated</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let rubikType of rubikTypes; trackBy: trackByRubikType">
+              <td data-label="ID">
+                <span class="mono-id">#{{ rubikType._id || rubikType.id || '—' }}</span>
+              </td>
+              <td data-label="Rubik Type">
+                <div class="type-cell">
+                  <strong>{{ rubikType.type_name }}</strong>
+                  <p>{{ rubikType.description || 'No description provided' }}</p>
+                </div>
+              </td>
+              <td data-label="Variations">
+                <span class="count-pill">{{ getVariantCount(rubikType) }} variations</span>
+              </td>
+              <td data-label="Updated">
+                {{
+                  formatDate(
+                    rubikType.updated_date || rubikType.updated_at || rubikType.created_date || rubikType.created_at
+                  )
+                }}
+              </td>
+              <td data-label="Actions">
+                <div class="row-actions">
+                  <button type="button" class="action-btn ghost" (click)="inspectRubikType(rubikType)">
+                    <span class="action-icon">👁️</span>
+                    Inspect
+                  </button>
+                  <button type="button" class="action-btn secondary" (click)="openEditModal(rubikType)">
+                    <span class="action-icon">✏️</span>
+                    Edit
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <section class="pagination-container glass" *ngIf="pagination && !listError">
+      <div class="pagination-info">
+        Showing page {{ pagination.currentPage }} of {{ pagination.totalPages }} ({{ pagination.totalItems }} total types)
+      </div>
+      <div class="pagination-controls">
+        <button
+          type="button"
+          class="pagination-btn"
+          (click)="goToPage(pagination.currentPage - 1)"
+          [disabled]="!pagination.hasPrevPage || isListLoading">
+          <span>←</span>
+          Previous
+        </button>
+
+        <div class="pagination-numbers">
+          <button
+            *ngFor="let page of getPageNumbers()"
+            type="button"
+            class="pagination-number"
+            [class.active]="page === currentPage"
+            [class.ellipsis]="page === -1"
+            [disabled]="page === -1 || isListLoading"
+            (click)="page !== -1 && goToPage(page)">
+            {{ page === -1 ? '...' : page }}
+          </button>
+        </div>
+
+        <button
+          type="button"
+          class="pagination-btn"
+          (click)="goToPage(pagination.currentPage + 1)"
+          [disabled]="!pagination.hasNextPage || isListLoading">
+          Next
+          <span>→</span>
+        </button>
+      </div>
+    </section>
+  </div>
+
+  <aside class="detail-drawer" [class.open]="isDetailDrawerOpen">
+    <div class="drawer-header">
+      <div>
+        <p class="eyebrow">Rubik type insight</p>
+        <h3>{{ rubikType?.type_name || 'Select a rubik type' }}</h3>
+        <p class="drawer-subtitle" *ngIf="rubikType">{{ rubikType.description || 'No description provided.' }}</p>
+      </div>
+      <div class="drawer-actions">
+        <button type="button" class="btn ghost" (click)="closeDetailDrawer()">Close</button>
+        <button
+          type="button"
+          class="btn secondary"
+          (click)="refreshCurrent()"
+          [disabled]="!currentRubikTypeId || isDetailLoading">
+          <span *ngIf="!isDetailLoading">Refresh</span>
+          <span *ngIf="isDetailLoading">Refreshing…</span>
+        </button>
+      </div>
+    </div>
+    <div class="drawer-meta" *ngIf="rubikType && lastFetchedAt">
+      <span class="meta-pill">Last synced {{ lastFetchedAt | date: 'short' }}</span>
+      <span class="meta-pill">Variation: {{ getVariantCount(rubikType) }}</span>
+      <span class="meta-pill">#{{ rubikType._id || rubikType.id }}</span>
+    </div>
+
+    <div class="drawer-body">
+      <section class="state-card muted" *ngIf="isDetailLoading">
+        <div class="loader"></div>
+        <p>Loading rubik type…</p>
+      </section>
+
+      <section class="state-card error" *ngIf="!isDetailLoading && detailError">
+        <div>
+          <h3>Unable to load rubik type</h3>
+          <p>{{ detailError }}</p>
+        </div>
+      </section>
+
+      <section class="tab-shell glass" *ngIf="rubikType && !isDetailLoading">
+        <nav class="tab-bar" aria-label="Rubik type detail tabs">
+          <button
+            type="button"
+            class="tab-btn"
+            *ngFor="let tab of tabs"
+            [class.active]="tab.id === activeTab"
+            (click)="setActiveTab(tab.id)">
+            <span class="tab-label">{{ tab.label }}</span>
+            <span class="tab-desc">{{ tab.description }}</span>
+          </button>
+        </nav>
+
+        <div class="tab-panel" *ngIf="activeTab === 'overview'">
+          <div class="overview-grid">
+            <article class="highlight-card">
+              <p class="eyebrow">Type name</p>
+              <h2>{{ rubikType.type_name }}</h2>
+              <p>{{ rubikType.description || 'No description provided.' }}</p>
+            </article>
+
+            <article class="highlight-card">
+              <p class="eyebrow">Lifecycle</p>
+              <div class="meta-grid">
+                <div>
+                  <span>Created</span>
+                  <strong>{{ formatDateTime(rubikType.created_date || rubikType.created_at) }}</strong>
+                </div>
+                <div>
+                  <span>Updated</span>
+                  <strong>{{ formatDateTime(rubikType.updated_date || rubikType.updated_at) }}</strong>
+                </div>
+                <div>
+                  <span>Variations</span>
+                  <strong>{{ getVariantCount(rubikType) }}</strong>
+                </div>
+              </div>
+            </article>
+          </div>
+
+          <article class="variants-card" *ngIf="hasVariants; else variantEmpty">
+            <div class="variants-head">
+              <div>
+                <p class="eyebrow">Variants</p>
+                <h3>{{ variantList.length }} available</h3>
+              </div>
+            </div>
+            <div class="variant-list">
+              <div class="variant-item" *ngFor="let variant of variantList; let idx = index">
+                <div class="variant-icon">{{ idx + 1 }}</div>
+                <div>
+                  <strong>{{ variant.name || 'Variant ' + (idx + 1) }}</strong>
+                  <p>{{ variant.description || 'No description' }}</p>
+                  <small *ngIf="variant.turn_metric">Turns: {{ variant.turn_metric }}</small>
+                </div>
+              </div>
+            </div>
+          </article>
+          <ng-template #variantEmpty>
+            <div class="state-card muted">
+              <p>No variants linked to this rubik type.</p>
+            </div>
+          </ng-template>
+        </div>
+
+        <div class="tab-panel" *ngIf="activeTab === 'attributes'">
+          <div class="attributes-grid" *ngIf="attributeEntries.length; else noAttributes">
+            <div class="attribute-card" *ngFor="let attribute of attributeEntries">
+              <span class="attribute-key">{{ attribute.key | titlecase }}</span>
+              <code class="attribute-value">{{ formatAttributeValue(attribute.value) }}</code>
+            </div>
+          </div>
+          <ng-template #noAttributes>
+            <div class="state-card muted">
+              <p>No additional attributes were returned for this rubik type.</p>
+            </div>
+          </ng-template>
+        </div>
+
+        <div class="tab-panel" *ngIf="activeTab === 'linkedProducts'">
+          <div *ngIf="hasLinkedProducts; else noLinkedProducts" class="products-grid">
+            <article class="product-card" *ngFor="let product of linkedProducts">
+              <div class="product-avatar">
+                <img
+                  [src]="product.avatar || 'https://gw.alipayobjects.com/zos/rmsportal/BiazfanxmamNRoxxVxka.png'"
+                  [alt]="product.name || 'Product avatar'"
+                  (error)="setFallbackImage($event)" />
+              </div>
+              <div class="product-body">
+                <h4>{{ product.name || 'Unnamed product' }}</h4>
+                <p class="product-meta">
+                  <span>ID: {{ product._id || product.id || '—' }}</span>
+                  <span *ngIf="product.category_name">Category: {{ product.category_name }}</span>
+                </p>
+                <span class="product-status" [class.active]="product.status === 'active'">
+                  {{ product.status ? (product.status | titlecase) : 'Unknown status' }}
+                </span>
+              </div>
+            </article>
+          </div>
+          <ng-template #noLinkedProducts>
+            <div class="state-card muted">
+              <p>No products currently reference this rubik type.</p>
+            </div>
+          </ng-template>
+        </div>
+      </section>
+    </div>
+  </aside>
+
+  <div class="modal-backdrop" *ngIf="isModalOpen">
+    <div class="modal-card glass">
+      <header class="modal-header">
+        <div>
+          <p class="eyebrow">Edit rubik type</p>
+          <h3>Update rubik type</h3>
+        </div>
+        <button type="button" class="icon-btn" (click)="closeModal()">×</button>
+      </header>
+
+      <form class="modal-form" (ngSubmit)="submitRubikTypeForm(rubikTypeFormRef)" #rubikTypeFormRef="ngForm">
+        <label class="form-label">Type name <span class="required">*</span></label>
+        <input
+          type="text"
+          name="typeName"
+          [(ngModel)]="rubikTypeForm.type_name"
+          required
+          placeholder="E.g. 3x3 Classic"
+          [disabled]="isModalSubmitting" />
+
+        <label class="form-label">Description</label>
+        <textarea
+          name="description"
+          [(ngModel)]="rubikTypeForm.description"
+          rows="3"
+          placeholder="Short summary"
+          [disabled]="isModalSubmitting"></textarea>
+
+        <label class="form-label">Variation <span class="required">*</span></label>
+        <input
+          type="number"
+          name="variation"
+          min="0"
+          step="1"
+          [(ngModel)]="rubikTypeForm.variation"
+          required
+          placeholder="Number of variations"
+          [disabled]="isModalSubmitting" />
+
+        <p class="modal-error" *ngIf="modalError">{{ modalError }}</p>
+
+        <div class="modal-actions">
+          <button type="button" class="btn ghost" (click)="closeModal()" [disabled]="isModalSubmitting">Cancel</button>
+          <button type="submit" class="btn primary" [disabled]="isModalSubmitting">
+            <span *ngIf="!isModalSubmitting">Save changes</span>
+            <span *ngIf="isModalSubmitting">Saving…</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+

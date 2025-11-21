@@ -51,6 +51,12 @@ export class AdminLayoutComponent implements OnInit, OnDestroy {
       icon: '🎲',
       route: '/admin/rubik-solves',
       active: false
+    },
+    {
+      label: 'Rubik Type Management',
+      icon: '🧱',
+      route: '/admin/rubik-types',
+      active: false
     }
   ];
 

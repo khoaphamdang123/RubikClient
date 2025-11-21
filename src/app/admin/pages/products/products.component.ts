@@ -31,12 +31,41 @@ interface DeleteProductResponse {
   message: string;
 }
 
+interface CategorySummary {
+  _id: string;
+  category_name: string;
+  id?: string;
+}
+
+interface CategoriesListResponse {
+  status: boolean;
+  message: string;
+  data?: {
+    categories?: Array<{
+      _id?: string;
+      id?: string | number;
+      category_name?: string;
+    }>;
+  };
+}
+
 // Extended product interface to handle MongoDB _id
 interface Product extends IRubik {
   _id?: string;
+  category_name?: string;
+  category?: {
+    category_name?: string;
+  } | null;
 }
 
-type ColumnKey = 'id' | 'name' | 'description' | 'avatar' | 'features' | 'actions';
+type ColumnKey =
+  | 'id'
+  | 'name'
+  | 'category'
+  | 'description'
+  | 'avatar'
+  | 'features'
+  | 'actions';
 
 @Component({
   selector: 'app-products',
@@ -50,6 +79,8 @@ export class ProductsComponent implements OnInit {
   pagination: PaginationData | null = null;
   isLoading = false;
   error: string | null = null;
+  isLoadingCategories = false;
+  categoriesError: string | null = null;
 
   // Search and filters
   searchTerm = '';
@@ -62,6 +93,7 @@ export class ProductsComponent implements OnInit {
   columns: Array<{ label: string; value: ColumnKey }> = [
     { label: 'ID', value: 'id' },
     { label: 'Name', value: 'name' },
+    { label: 'Category', value: 'category' },
     { label: 'Description', value: 'description' },
     { label: 'Image', value: 'avatar' },
     { label: 'Features', value: 'features' },
@@ -72,14 +104,17 @@ export class ProductsComponent implements OnInit {
   columnVisibility: Record<ColumnKey, boolean> = {
     id: true,
     name: true,
+    category: true,
     description: true,
     avatar: true,
     features: false,
     actions: true
   };
 
-  selectedColumns: ColumnKey[] = ['id', 'name', 'description', 'avatar', 'actions'];
+  selectedColumns: ColumnKey[] = ['id', 'name', 'category', 'description', 'avatar', 'actions'];
   isColumnDropdownOpen = false;
+  categories: CategorySummary[] = [];
+  categoryLookup: Record<string, string> = {};
 
   constructor(
     private popupService: PopupService,
@@ -103,6 +138,7 @@ export class ProductsComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.loadCategoriesForLookup();
     this.loadProducts();
   }
 
@@ -359,6 +395,120 @@ export class ProductsComponent implements OnInit {
 
   getProductId(product: Product): string {
     return product._id || product.id?.toString() || '-';
+  }
+
+  getCategoryLabel(product: Product): string {
+    const directName = this.getInlineCategoryName(product);
+    if (directName) {
+      return directName;
+    }
+
+    const categoryId = this.normalizeId(product.category_id);
+    if (categoryId && this.categoryLookup[categoryId]) {
+      return this.categoryLookup[categoryId];
+    }
+
+    if (categoryId) {
+      return this.isLoadingCategories ? 'Loading category...' : 'Unknown category';
+    }
+
+    return 'No category';
+  }
+
+  private async loadCategoriesForLookup(): Promise<void> {
+    this.isLoadingCategories = true;
+    this.categoriesError = null;
+
+    try {
+      const token = localStorage.getItem('TOKEN') ?? '';
+      const params = new URLSearchParams();
+      params.append('page', '1');
+      params.append('limit', '1000');
+
+      const response = await axios.get<CategoriesListResponse>(
+        `${environment.server_url}/admin/categories?${params.toString()}`,
+        { headers: { Authorization: token } }
+      );
+
+      if (response.data.status && response.data.data?.categories) {
+        const mappedCategories = response.data.data.categories
+          .map(category => {
+            const normalizedName = this.normalizeCategoryName(category.category_name);
+            const normalizedObjectId = this.normalizeId(category._id);
+            if (!normalizedName || !normalizedObjectId) {
+              return null;
+            }
+
+            const normalizedNumericId = this.normalizeId(category.id);
+
+            const summary: CategorySummary = {
+              _id: normalizedObjectId,
+              category_name: normalizedName
+            };
+
+            if (normalizedNumericId) {
+              summary.id = normalizedNumericId;
+            }
+
+            return summary;
+          })
+          .filter((category): category is CategorySummary => category !== null);
+
+        this.categories = mappedCategories;
+
+        this.categoryLookup = mappedCategories.reduce((acc, category) => {
+          acc[category._id] = category.category_name;
+          if (category.id) {
+            acc[category.id] = category.category_name;
+          }
+          return acc;
+        }, {} as Record<string, string>);
+      } else {
+        this.categoriesError =
+          response.data.message || 'Failed to load categories';
+        this.categories = [];
+        this.categoryLookup = {};
+      }
+    } catch (error: any) {
+      console.error('Error loading categories for lookup:', error);
+      if (error.response?.status === 401) {
+        // loadProducts will handle redirect/logout
+        this.categoriesError = 'Unauthorized access';
+      } else {
+        this.categoriesError =
+          error.response?.data?.message || 'Failed to load categories';
+      }
+      this.categories = [];
+      this.categoryLookup = {};
+    } finally {
+      this.isLoadingCategories = false;
+    }
+  }
+
+  private getInlineCategoryName(product: Product): string | null {
+    const direct = this.normalizeCategoryName(product.category_name);
+    if (direct) {
+      return direct;
+    }
+
+    const nestedCategoryName = this.normalizeCategoryName(product.category?.category_name);
+    return nestedCategoryName;
+  }
+
+  private normalizeCategoryName(raw?: string | null): string | null {
+    if (!raw) {
+      return null;
+    }
+    const trimmed = raw.trim();
+    return trimmed ? trimmed : null;
+  }
+
+  private normalizeId(value?: string | number | null): string | null {
+    if (value === null || value === undefined) {
+      return null;
+    }
+    const normalized = value.toString().trim();
+    return normalized || null;
   }
 }
 

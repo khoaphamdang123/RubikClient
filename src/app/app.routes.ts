@@ -26,6 +26,8 @@ import { CategoriesComponent } from './admin/pages/categories/categories.compone
 import { CategoryCreateComponent } from './admin/pages/category-create/category-create.component';
 import { CategoryEditComponent } from './admin/pages/category-edit/category-edit.component';
 import { RubikSolvesComponent } from './admin/pages/rubik-solves/rubik-solves.component';
+import { RubikTypeManagementComponent } from './admin/pages/rubik-type-management/rubik-type-management.component';
+import { RubikTypeCreateComponent } from './admin/pages/rubik-type-create/rubik-type-create.component';
 import { AdminLoginComponent } from './admin/pages/admin-login/admin-login.component';
 import { adminGuard } from './admin/guards/admin.guard';
 
@@ -62,7 +64,10 @@ export const routes: Routes = [
             {path:'categories/create',component:CategoryCreateComponent},
             {path:'categories/:id/edit',component:CategoryEditComponent},
             {path:'categories',component:CategoriesComponent},
-            {path:'rubik-solves',component:RubikSolvesComponent}
+            {path:'rubik-solves',component:RubikSolvesComponent},
+            {path:'rubik-types/create',component:RubikTypeCreateComponent},
+            {path:'rubik-types',component:RubikTypeManagementComponent},
+            {path:'rubik-types/:id',component:RubikTypeManagementComponent}
         ]
     },
     {path:"**",component:NotFoundComponent}

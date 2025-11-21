@@ -154,6 +154,7 @@
             <tr>
               <th *ngIf="columnVisibility.id">ID</th>
               <th *ngIf="columnVisibility.name">Name</th>
+              <th *ngIf="columnVisibility.category">Category</th>
               <th *ngIf="columnVisibility.description">Description</th>
               <th *ngIf="columnVisibility.avatar">Image</th>
               <th *ngIf="columnVisibility.features">Features</th>
@@ -167,6 +168,15 @@
                 <div class="user-info">
                   <span class="user-name">{{ product.name || '-' }}</span>
                 </div>
+              </td>
+              <td *ngIf="columnVisibility.category" class="category-cell" data-label="Category">
+                <ng-container *ngIf="getCategoryLabel(product) as categoryLabel">
+                  <span
+                    class="category-chip"
+                    [class.category-chip--missing]="categoryLabel === 'No category' || categoryLabel === 'Unknown category'">
+                    {{ categoryLabel }}
+                  </span>
+                </ng-container>
               </td>
               <td *ngIf="columnVisibility.description" class="email-cell" data-label="Description">
                 {{ truncateText(product.description, 100) }}
