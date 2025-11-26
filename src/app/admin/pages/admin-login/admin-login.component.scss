@@ -257,6 +257,39 @@ label {
   align-items: center;
 }
 
+.password-input-wrapper {
+  .form-control {
+    padding-right: 3rem;
+  }
+}
+
+.toggle-password-btn {
+  position: absolute;
+  right: 0.75rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.6);
+  padding: 0.25rem;
+  border-radius: 999px;
+  transition: color 0.2s ease, background-color 0.2s ease;
+
+  svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  &:hover,
+  &:focus-visible {
+    color: white;
+    background-color: rgba(255, 255, 255, 0.08);
+    outline: none;
+  }
+}
+
 .input-icon {
   position: absolute;
   left: 1rem;
@@ -532,6 +565,9 @@ label {
     font-size: 2rem;
   }
 }
+
+
+
 
 
 

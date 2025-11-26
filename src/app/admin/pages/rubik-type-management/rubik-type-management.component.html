@@ -1,4 +1,4 @@
-<section class="rubik-type-shell">
+<section class="rubik-type-shell users-shell">
   <div class="loading-overlay" *ngIf="isListLoading">
     <div class="loading-card">
       <div class="glow"></div>
@@ -7,13 +7,14 @@
     </div>
   </div>
 
-  <div class="rubik-type-grid" [class.dimmed]="isListLoading">
-    <header class="hero-header glass">
+  <div class="rubik-type-grid users-grid" [class.dimmed]="isListLoading">
+    <header class="users-hero">
       <div class="hero-intro">
         <div class="hero-badge">All Rubik Types</div>
         <h2>Rubik Type Management</h2>
         <p>
-          Audit every rubik taxonomy, adjust visibility, and keep linked products in sync — all without leaving this page.
+          Manage rubik taxonomies with the same streamlined toolkit that powers user
+          and product administration.
         </p>
       </div>
       <div class="hero-actions">
@@ -29,20 +30,18 @@
     </header>
 
     <div *ngIf="listError && !isListLoading" class="error-state glass">
-      <div class="error-copy">
-        <div class="error-icon">⚠️</div>
-        <h3>Unable to load rubik types</h3>
-        <p>{{ listError }}</p>
-      </div>
+      <div class="error-icon">⚠️</div>
+      <h3>Error Loading Rubik Types</h3>
+      <p>{{ listError }}</p>
       <button type="button" class="refresh-btn" (click)="refreshTable()">
         <span class="refresh-icon" aria-hidden="true">↻</span>
         Retry
       </button>
     </div>
 
-    <section class="filters-section glass" *ngIf="!listError">
+    <div class="filters-section glass" *ngIf="!listError">
       <div class="filters-grid">
-        <div class="filter-group search">
+        <div class="filter-group">
           <label class="filter-label">Search Rubik Types</label>
           <div class="search-input-wrapper">
             <span class="search-icon">🔍</span>
@@ -71,14 +70,42 @@
         </div>
 
         <div class="filter-group">
-          <label class="filter-label">Items per page</label>
+          <label class="filter-label">Items per Page</label>
           <select class="filter-select" [(ngModel)]="pageSize" (change)="onPageSizeChange()" [disabled]="isListLoading">
             <option *ngFor="let size of pageSizeOptions" [value]="size">{{ size }}</option>
           </select>
         </div>
 
+        <div class="filter-group column-filter">
+          <label class="filter-label">Show/Hide Columns</label>
+          <div class="column-select" [class.open]="isColumnDropdownOpen">
+            <button
+              type="button"
+              class="column-select-trigger"
+              (click)="toggleColumnDropdown($event)"
+              [disabled]="isListLoading">
+              <span class="column-select-label">{{ selectedColumnsLabel }}</span>
+              <span class="column-select-icon" aria-hidden="true">⌄</span>
+            </button>
+
+            <div class="column-select-dropdown" *ngIf="isColumnDropdownOpen" (click)="$event.stopPropagation()">
+              <label class="column-option" *ngFor="let column of columns">
+                <input
+                  type="checkbox"
+                  [checked]="columnVisibility[column.value]"
+                  (change)="onColumnOptionToggle(column.value, $any($event.target).checked)" />
+                <span>{{ column.label }}</span>
+              </label>
+
+              <button type="button" class="column-select-reset" (click)="resetColumnSelection()">
+                Reset to defaults
+              </button>
+            </div>
+          </div>
+        </div>
+
         <div class="filter-group quick-actions">
-          <label class="filter-label">Quick actions</label>
+          <label class="filter-label">Quick Actions</label>
           <div class="filter-actions">
             <button type="button" class="action-btn ghost" (click)="resetFilters()" [disabled]="isListLoading">
               Clear filters
@@ -89,74 +116,85 @@
           </div>
         </div>
       </div>
-    </section>
+    </div>
 
-    <section class="stats-summary glass" *ngIf="pagination && !listError">
+    <div class="stats-summary glass" *ngIf="pagination && !listError">
       <div class="stat-item">
-        <span class="stat-label">Total rubik types</span>
+        <span class="stat-label">Total Rubik Types</span>
         <span class="stat-value">{{ pagination.totalItems | number }}</span>
       </div>
       <div class="stat-item">
-        <span class="stat-label">Current page</span>
+        <span class="stat-label">Current Page</span>
         <span class="stat-value">{{ pagination.currentPage }} / {{ pagination.totalPages }}</span>
       </div>
       <div class="stat-item">
-        <span class="stat-label">Showing now</span>
-        <span class="stat-value">{{ rubikTypes.length }} types</span>
+        <span class="stat-label">Showing</span>
+        <span class="stat-value"> {{rubikTypes.length}} types</span>
       </div>
-    </section>
+    </div>
 
-    <div class="rubik-types-table-container" *ngIf="!listError">
+    <div class="users-table-container" *ngIf="!listError">
       <div *ngIf="rubikTypes.length === 0 && !isListLoading" class="empty-state glass">
         <div class="empty-icon">🧱</div>
-        <h3>No rubik types found</h3>
+        <h3>No Rubik Types Found</h3>
         <p>No results match your current search or filter selection.</p>
         <button type="button" class="refresh-btn" (click)="resetFilters()">
-          Clear filters
+          Clear Filters
         </button>
       </div>
 
       <div *ngIf="rubikTypes.length > 0" class="table-wrapper glass">
-        <table class="rubik-types-table">
+        <table class="users-table">
           <thead>
             <tr>
-              <th>ID</th>
-              <th>Rubik Type</th>
-              <th>Variations</th>
-              <th>Updated</th>
-              <th>Actions</th>
+              <th *ngIf="columnVisibility.id">#</th>
+              <th *ngIf="columnVisibility.type">Rubik Type</th>
+              <th *ngIf="columnVisibility.description">Description</th>
+              <th *ngIf="columnVisibility.variation">Variations</th>
+              <th *ngIf="columnVisibility.updated">Updated</th>
+              <th *ngIf="columnVisibility.actions">Actions</th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let rubikType of rubikTypes; trackBy: trackByRubikType">
-              <td data-label="ID">
-                <span class="mono-id">#{{ rubikType._id || rubikType.id || '—' }}</span>
+            <tr
+              *ngFor="let rubikType of rubikTypes; let i = index; trackBy: trackByRubikType"
+              class="user-row">
+              <td *ngIf="columnVisibility.id" class="id-cell" data-label="ID">
+                {{ getRowNumber(i) }}
               </td>
-              <td data-label="Rubik Type">
-                <div class="type-cell">
-                  <strong>{{ rubikType.type_name }}</strong>
-                  <p>{{ rubikType.description || 'No description provided' }}</p>
+              <td *ngIf="columnVisibility.type" class="user-cell" data-label="Rubik Type">
+                <div class="user-info">
+                  <div class="user-avatar-wrapper type-avatar">
+                    <span>{{ (rubikType.type_name || '?').slice(0, 1) }}</span>
+                  </div>
+                  <div class="type-meta">
+                    <span class="user-name">{{ rubikType.type_name || 'Unnamed type' }}</span>
+                    <span class="type-id">#{{ rubikType._id || rubikType.id || '—' }}</span>
+                  </div>
                 </div>
               </td>
-              <td data-label="Variations">
+              <td *ngIf="columnVisibility.description" class="description-cell" data-label="Description">
+                {{ truncateText(rubikType.description, 140) }}
+              </td>
+              <td *ngIf="columnVisibility.variation" class="role-cell" data-label="Variations">
                 <span class="count-pill">{{ getVariantCount(rubikType) }} variations</span>
               </td>
-              <td data-label="Updated">
+              <td *ngIf="columnVisibility.updated" class="date-cell" data-label="Updated">
                 {{
                   formatDate(
                     rubikType.updated_date || rubikType.updated_at || rubikType.created_date || rubikType.created_at
                   )
                 }}
               </td>
-              <td data-label="Actions">
-                <div class="row-actions">
-                  <button type="button" class="action-btn ghost" (click)="inspectRubikType(rubikType)">
+              <td *ngIf="columnVisibility.actions" class="actions-cell" data-label="Actions">
+                <div class="action-buttons">
+                  <button type="button" class="action-btn secondary" (click)="inspectRubikType(rubikType)">
                     <span class="action-icon">👁️</span>
-                    Inspect
+                    <span>Inspect</span>
                   </button>
                   <button type="button" class="action-btn secondary" (click)="openEditModal(rubikType)">
                     <span class="action-icon">✏️</span>
-                    Edit
+                    <span>Edit</span>
                   </button>
                 </div>
               </td>
@@ -166,16 +204,19 @@
       </div>
     </div>
 
-    <section class="pagination-container glass" *ngIf="pagination && !listError">
+    <div class="pagination-container glass" *ngIf="pagination && !listError">
       <div class="pagination-info">
-        Showing page {{ pagination.currentPage }} of {{ pagination.totalPages }} ({{ pagination.totalItems }} total types)
+        <span>
+          Showing page {{ pagination.currentPage }} of {{ pagination.totalPages }}
+          ({{ pagination.totalItems }} total types)
+        </span>
       </div>
       <div class="pagination-controls">
         <button
           type="button"
           class="pagination-btn"
-          (click)="goToPage(pagination.currentPage - 1)"
-          [disabled]="!pagination.hasPrevPage || isListLoading">
+          [disabled]="!pagination.hasPrevPage || isListLoading"
+          (click)="goToPage(currentPage - 1)">
           <span>←</span>
           Previous
         </button>
@@ -196,13 +237,13 @@
         <button
           type="button"
           class="pagination-btn"
-          (click)="goToPage(pagination.currentPage + 1)"
-          [disabled]="!pagination.hasNextPage || isListLoading">
+          [disabled]="!pagination.hasNextPage || isListLoading"
+          (click)="goToPage(currentPage + 1)">
           Next
           <span>→</span>
         </button>
       </div>
-    </section>
+    </div>
   </div>
 
   <aside class="detail-drawer" [class.open]="isDetailDrawerOpen">

@@ -10,8 +10,8 @@ interface Category {
   _id?: number;
   category_name?: string;
   description?: string;
-  createdAt?: string;
-  updatedAt?: string;
+  created_date?: string;
+  updated_date?: string;
 }
 
 interface CategoryDetailResponse {
@@ -248,6 +248,9 @@ export class CategoryEditComponent implements OnInit {
     return payload;
   }
 }
+
+
+
 
 
 

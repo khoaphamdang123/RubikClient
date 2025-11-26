@@ -28,6 +28,7 @@ export class AdminLoginComponent implements OnInit, OnDestroy {
   standard_remaing_time: string = '';
   is_valid_capcha: boolean = true;
   isLoading: boolean = false;
+  passwordVisible:boolean=false;
   @ViewChild('capchaInput') capchaInput!: ElementRef;
 
   constructor(
@@ -103,6 +104,10 @@ export class AdminLoginComponent implements OnInit, OnDestroy {
     if (this.capchaInput) {
       this.capchaInput.nativeElement.value = '';
     }
+  }
+
+  togglePasswordVisibility():void{
+    this.passwordVisible = !this.passwordVisible;
   }
 
   async onSubmitForm() {

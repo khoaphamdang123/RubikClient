@@ -1,11 +1,12 @@
 import { CommonModule, TitleCasePipe } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, ElementRef, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { ActivatedRoute, ParamMap, Router, RouterModule } from '@angular/router';
 import axios from 'axios';
 import { Subscription } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { PopupService } from '../../../../services/popup.service';
+import { jsDocComment } from '@angular/compiler';
 
 type RubikTypeIdentifier = number | string;
 
@@ -48,6 +49,7 @@ interface RubikTypeDetailResponse {
     rubikType?: RubikTypeDetail;
   };
 }
+
 
 interface RubikTypeListResponse {
   status: boolean;
@@ -103,6 +105,7 @@ interface RubikTypeFormModel {
 
 type RubikTypeTab = 'overview' | 'attributes' | 'linkedProducts';
 type RubikTypeSortKey = 'newest' | 'oldest' | 'nameAsc' | 'nameDesc';
+type RubikTypeColumnKey = 'id' | 'type' | 'description' | 'variation' | 'updated';
 
 interface RubikTypeTabConfig {
   id: RubikTypeTab;
@@ -151,6 +154,26 @@ export class RubikTypeManagementComponent implements OnInit, OnDestroy {
     variation: null
   };
 
+  columns: Array<{ label: string; value: RubikTypeColumnKey }> = [
+    { label: 'ID', value: 'id' },
+    { label: 'Rubik Type', value: 'type' },
+    { label: 'Description', value: 'description' },
+    { label: 'Variations', value: 'variation' },
+    { label: 'Updated', value: 'updated' }
+  ];
+
+  columnVisibility: Record<RubikTypeColumnKey, boolean> & { actions: boolean } = {
+    id: true,
+    type: true,
+    description: true,
+    variation: true,
+    updated: true,
+    actions: true
+  };
+
+  selectedColumns: RubikTypeColumnKey[] = ['id', 'type', 'description', 'variation', 'updated'];
+  isColumnDropdownOpen = false;
+
   private routeSubscription?: Subscription;
 
   tabs: RubikTypeTabConfig[] = [
@@ -174,8 +197,21 @@ export class RubikTypeManagementComponent implements OnInit, OnDestroy {
   constructor(
     private readonly route: ActivatedRoute,
     private readonly router: Router,
-    private readonly popupService: PopupService
+    private readonly popupService: PopupService,
+    private readonly elementRef: ElementRef
   ) {}
+
+  @HostListener('document:click', ['$event'])
+  handleDocumentClick(event: Event): void {
+    if (this.isColumnDropdownOpen && !this.elementRef.nativeElement.contains(event.target as Node)) {
+      this.closeColumnDropdown();
+    }
+  }
+
+  @HostListener('document:keydown.escape')
+  handleEscape(): void {
+    this.closeColumnDropdown();
+  }
 
   ngOnInit(): void {
     this.loadRubikTypes();
@@ -224,7 +260,7 @@ export class RubikTypeManagementComponent implements OnInit, OnDestroy {
         params.append('search', this.filters.searchTerm.trim());
       }
 
-      const response = await axios.get<RubikTypeListResponse>(
+      const response = await axios.get<RubikTypeListResponse | RubikTypeDetail[]>(
         `${environment.server_url}/admin/rubik-types?${params.toString()}`,
         {
           headers: {
@@ -233,16 +269,14 @@ export class RubikTypeManagementComponent implements OnInit, OnDestroy {
         }
       );
 
-      if (response.data.status) {
-        const results = response.data.data?.rubikTypes ?? [];
-        const normalized = this.applyClientFilters(results);
-        this.rubikTypes = normalized;
-        this.pagination = this.normalizePagination(
-          response.data.data?.pagination,
-          response.data.data?.rubikTypes?.length ?? normalized.length
-        );
+      const normalizedPayload = this.normalizeListPayload(response.data);
+
+      if (normalizedPayload) {
+        const filtered = this.applyClientFilters(normalizedPayload.items);
+        this.rubikTypes = filtered;
+        this.pagination = this.normalizePagination(normalizedPayload.pagination, normalizedPayload.totalFallback);
       } else {
-        this.listError = response.data.message || 'Failed to load rubik types';
+        this.listError = 'Failed to load rubik types';
         this.rubikTypes = [];
         this.pagination = null;
       }
@@ -262,15 +296,17 @@ export class RubikTypeManagementComponent implements OnInit, OnDestroy {
 
   async fetchRubikTypeDetail(id: RubikTypeIdentifier): Promise<void> {
     if (id === null || id === undefined) {
-      return;
+      return;      
     }
 
     const token = this.getAuthorizationToken();
+
     if (!token) {
       return;
     }
 
     this.isDetailLoading = true;
+
     this.detailError = null;
 
     try {
@@ -285,6 +321,7 @@ export class RubikTypeManagementComponent implements OnInit, OnDestroy {
 
       if (response.data.status && response.data.data?.rubikType) {
         this.rubikType = response.data.data.rubikType;
+        //alert(JSON.stringify(this.rubikType));
         this.lastFetchedAt = new Date();
         this.detailError = null;
       } else {
@@ -564,6 +601,17 @@ export class RubikTypeManagementComponent implements OnInit, OnDestroy {
     });
   }
 
+  truncateText(value: string | null | undefined, limit = 140): string {
+    if (!value) {
+      return '—';
+    }
+    const trimmed = value.trim();
+    if (trimmed.length <= limit) {
+      return trimmed;
+    }
+    return `${trimmed.slice(0, limit).trim()}…`;
+  }
+
   getVariantCount(type: RubikTypeDetail): number {
     const variationValue = this.normalizeVariationInput(type.variation);
     if (variationValue !== null) {
@@ -610,6 +658,54 @@ export class RubikTypeManagementComponent implements OnInit, OnDestroy {
 
     pages.push(totalPages);
     return pages;
+  }
+
+  get selectedColumnsLabel(): string {
+    if (this.selectedColumns.length === this.columns.length) {
+      return 'Showing all columns';
+    }
+
+    if (this.selectedColumns.length === 0) {
+      return 'No columns selected';
+    }
+
+    if (this.selectedColumns.length <= 2) {
+      return this.columns
+        .filter(column => this.selectedColumns.includes(column.value))
+        .map(column => column.label)
+        .join(', ');
+    }
+
+    return `${this.selectedColumns.length} columns visible`;
+  }
+
+  toggleColumnDropdown(event?: MouseEvent): void {
+    event?.stopPropagation();
+    this.isColumnDropdownOpen = !this.isColumnDropdownOpen;
+  }
+
+  onColumnOptionToggle(columnValue: RubikTypeColumnKey, checked: boolean): void {
+    const isOnlyColumnSelected =
+      !checked && this.selectedColumns.length === 1 && this.selectedColumns.includes(columnValue);
+
+    if (isOnlyColumnSelected) {
+      return;
+    }
+
+    this.columnVisibility[columnValue] = checked;
+    this.updateSelectedColumns();
+  }
+
+  resetColumnSelection(): void {
+    this.columns.forEach(column => {
+      this.columnVisibility[column.value] = true;
+    });
+    this.updateSelectedColumns();
+    this.closeColumnDropdown();
+  }
+
+  getRowNumber(index: number): number {
+    return (this.currentPage - 1) * this.pageSize + index + 1;
   }
 
   trackByRubikType(_index: number, rubikType: RubikTypeDetail): RubikTypeIdentifier | string {
@@ -727,6 +823,76 @@ export class RubikTypeManagementComponent implements OnInit, OnDestroy {
 
   private getSafeIdentifier(value: RubikTypeIdentifier): string {
     return String(value);
+  }
+
+  private closeColumnDropdown(): void {
+    this.isColumnDropdownOpen = false;
+  }
+
+  private updateSelectedColumns(): void {
+    this.selectedColumns = this.columns.filter(column => this.columnVisibility[column.value]).map(column => column.value);
+  }
+
+  private normalizeListPayload(
+    payload: RubikTypeListResponse | RubikTypeDetail[] | unknown
+  ): { items: RubikTypeDetail[]; pagination?: RubikTypePaginationPayload; totalFallback: number } | null {
+    if (Array.isArray(payload)) {
+      return {
+        items: payload,
+        pagination: undefined,
+        totalFallback: payload.length
+      };
+    }
+
+    if (payload && typeof payload === 'object') {
+      const typedPayload = payload as RubikTypeListResponse & {
+        rubikTypes?: RubikTypeDetail[];
+        data?: RubikTypeDetail[] | { rubikTypes?: RubikTypeDetail[]; pagination?: RubikTypePaginationPayload };
+        pagination?: RubikTypePaginationPayload;
+      };
+
+      if (Object.prototype.hasOwnProperty.call(typedPayload, 'status')) {
+        if (typedPayload.status) {
+          const items = typedPayload.data?.rubikTypes ?? [];
+          return {
+            items,
+            pagination: typedPayload.data?.pagination,
+            totalFallback: items.length
+          };
+        }
+
+        this.listError = typedPayload.message || 'Failed to load rubik types';
+        return null;
+      }
+
+      if (typedPayload.data && !Array.isArray(typedPayload.data)) {
+        const nested = typedPayload.data;
+        const items = nested.rubikTypes ?? [];
+
+        if (Array.isArray(items)) {
+          return {
+            items,
+            pagination: nested.pagination ?? typedPayload.pagination,
+            totalFallback: items.length
+          };
+        }
+      }
+
+      const directList =
+        (typedPayload.data && Array.isArray(typedPayload.data) ? typedPayload.data : undefined) ??
+        typedPayload.rubikTypes ??
+        [];
+
+      if (Array.isArray(directList)) {
+        return {
+          items: directList,
+          pagination: typedPayload.pagination,
+          totalFallback: directList.length
+        };
+      }
+    }
+
+    return null;
   }
 }
 

@@ -29,6 +29,7 @@ export class LoginComponent implements OnInit,OnDestroy {
       standard_remaing_time:string='';
       is_valid_capcha:boolean=true;
       show_form:boolean = false;
+      passwordVisible:boolean=false;
       @ViewChild('capchaInput') capchaInput!:ElementRef;
       
       // Rubik's cube colors
@@ -88,6 +89,11 @@ export class LoginComponent implements OnInit,OnDestroy {
     closeForm()
     {
       this.show_form = false;
+    }
+
+    togglePasswordVisibility():void
+    {
+      this.passwordVisible = !this.passwordVisible;
     }
 
       generateCapchaForm():ICapcha

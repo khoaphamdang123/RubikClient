@@ -34,6 +34,7 @@ export class RubikTypeCreateComponent {
   };
 
   isSaving = false;
+  
   error: string | null = null;
 
   constructor(
@@ -159,5 +160,8 @@ export class RubikTypeCreateComponent {
     this.router.navigate(['/admin/login']);
   }
 }
+
+
+
 
 

@@ -196,6 +196,45 @@
   box-sizing: border-box;
 }
 
+.password-field {
+  .password-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .form-control {
+    padding-right: 3rem;
+  }
+}
+
+.toggle-password-btn {
+  position: absolute;
+  right: 0.75rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  padding: 0.25rem;
+  border-radius: 999px;
+  transition: color 0.2s ease, background-color 0.2s ease;
+
+  svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  &:hover,
+  &:focus-visible {
+    color: #374151;
+    background-color: rgba(55, 65, 81, 0.1);
+    outline: none;
+  }
+}
+
 label {
   margin-bottom: 0.5rem;
   font-weight: 600;
