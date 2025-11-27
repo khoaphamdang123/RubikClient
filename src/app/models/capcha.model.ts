@@ -1,8 +1,4 @@
-export interface ICapcha
-{
-    first_number?:number;
-    second_number?:number;
-    result_number?:number;
-    operator:string;
-    
+export interface ICapcha {
+  prompt: string;
+  answer: number;
 }

@@ -30,26 +30,28 @@
         </div>
         <div class="capcha">
           <div class="capcha-detail">
-          <div class="capcha-item">
-            <span class="capcha-content">{{capcha.first_number}} {{capcha.operator}} ? = {{capcha.result_number}}</span>
+            <div class="capcha-item">
+              <span class="capcha-content">{{ capcha.prompt }}</span>
+            </div>
           </div>
-         </div>
-         <div class="capcha-input">
-          <div class="capcha-input-row">
-          <label for="capcha-res">Your result is:</label>
-          <input type="number" id="capcha-res" name="capcha-res" class="capcha-res" #capchaInput required>
-          <button class="refresh-capcha-btn" type="button" (click)="refreshCapcha()">
-            <img src="assets/images/refresh.png">
-          </button>
+          <div class="capcha-input">
+            <div class="capcha-input-row">
+              <label for="capcha-res">Your answer:</label>
+              <input type="number" id="capcha-res" name="capcha-res" class="capcha-res" #capchaInput required>
+              <button class="refresh-capcha-btn" type="button" (click)="refreshCapcha()">
+                <img src="assets/images/refresh.png">
+              </button>
+            </div>
+            @if(!is_valid_capcha){
+              <span class="form-error capcha-break-row"><p>Your answer is incorrect</p></span>
+            }
+          </div>
         </div>
         <div class="forgot-password"><a href="javascript:void(0);" (click)="showForm()">Forgot password?</a></div>
         @if(show_form)
         {
           <app-forgot-password-form (close_form)="closeForm()"></app-forgot-password-form>
         }
-       @if(!is_valid_capcha){<span class="form-error capcha-break-row"><p>Your result result is incorrect</p></span>}
-         </div>
-         </div>
         <button type="submit" class="btn btn-primary center-button">Login</button>  
       </form>
     </div>

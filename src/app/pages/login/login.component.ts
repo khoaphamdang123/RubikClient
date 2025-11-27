@@ -98,14 +98,9 @@ export class LoginComponent implements OnInit,OnDestroy {
 
       generateCapchaForm():ICapcha
       {
-      var operators =['+','-','*'];
-      var first_number=Math.floor(Math.random()*(100-1)+1);
-      var second_number=Math.floor(Math.random()*(100-1)+1);
-      var operator = operators[Math.floor(Math.random()*operators.length)];
-      var prob=`${first_number} ${operator} ${second_number}`;
-      var result=eval(prob);
-      var gen_capcha:ICapcha={first_number:first_number,result_number:result,operator:operator,second_number:second_number};
-      return gen_capcha;
+        const generators = [this.generateArithmeticChallenge, this.generateIntegralChallenge, this.generateDerivativeChallenge];
+        const picked = generators[Math.floor(Math.random()*generators.length)].bind(this);
+        return picked();
       }
 
       refreshCapcha():void
@@ -158,8 +153,9 @@ export class LoginComponent implements OnInit,OnDestroy {
         {       
         try
         {
-          const capcha_input_value=this.capchaInput.nativeElement.value;
-         if(parseInt(capcha_input_value)!=this.capcha.second_number)
+         const capcha_input_value=this.capchaInput.nativeElement.value;
+        const parsedAnswer = Number(capcha_input_value);
+        if(!Number.isFinite(parsedAnswer) || Math.abs(parsedAnswer - this.capcha.answer) > 0.0001)
           {
            this.is_valid_capcha=false;
            this.capcha = this.generateCapchaForm();
@@ -227,5 +223,43 @@ export class LoginComponent implements OnInit,OnDestroy {
           console.log(error);
         }
         }
+      }
+
+      private generateArithmeticChallenge(): ICapcha {
+        const a = this.randomInt(5, 20);
+        const b = this.randomInt(2, 12);
+        const c = this.randomInt(2, 8);
+        return {
+          prompt: `(${a} - ${b}) × ${c}`,
+          answer: (a - b) * c
+        };
+      }
+
+      private generateIntegralChallenge(): ICapcha {
+        const power = this.randomInt(1, 3);
+        const upper = this.randomInt(1, 4);
+        const base = this.randomInt(1, 4);
+        const coefficient = base * (power + 1);
+        const answer = base * Math.pow(upper, power + 1);
+        const term = power === 1 ? `${coefficient}x` : `${coefficient}x^${power}`;
+        return {
+          prompt: `∫₀^${upper} ${term} dx`,
+          answer
+        };
+      }
+
+      private generateDerivativeChallenge(): ICapcha {
+        const power = this.randomInt(2, 4);
+        const coefficient = this.randomInt(2, 6);
+        const point = this.randomInt(1, 4);
+        const answer = coefficient * power * Math.pow(point, power - 1);
+        return {
+          prompt: `d/dx (${coefficient}x^${power}) at x = ${point}`,
+          answer
+        };
+      }
+
+      private randomInt(min: number, max: number): number {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
       }
 }

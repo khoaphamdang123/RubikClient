@@ -394,6 +394,10 @@ label {
   font-style: italic;
   color: #0C0705;
   font-weight: 600;
+  text-align: center;
+  word-break: break-word;
+  line-height: 1.4;
+  padding: 0 0.75rem;
 }
 
 .capcha-input-row {
@@ -452,8 +456,9 @@ label {
 
 .capcha-res {
   flex: 1;
-  min-width: 60px;
-  max-width: 100%;
+  min-width: 0;
+  max-width: 340px;
+  width: 100%;
   padding: 0.75rem;
   border: 2px solid #e5e7eb;
   border-radius: 8px;
@@ -465,10 +470,6 @@ label {
     border-color: #667eea;
     outline: none;
     box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
-  }
-
-  @media (min-width: 640px) {
-    min-width: 80px;
   }
 }
 

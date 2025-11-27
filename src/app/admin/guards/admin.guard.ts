@@ -17,7 +17,8 @@ export const adminGuard: CanActivateFn = (route, state) => {
     const accountData = localStorage.getItem('ACCOUNT');
     if (accountData) {
       const user = JSON.parse(accountData);
-      if (user.role_id === 1 || user.role === 'Admin') {
+      if (user.role_id === 1 || user.role === 'Admin') 
+      {
         return true;
       }
     }
@@ -27,6 +28,7 @@ export const adminGuard: CanActivateFn = (route, state) => {
 
   // Not admin, redirect to client
   router.navigate(['/login']);
+
   return false;
 };
 

@@ -374,6 +374,9 @@ label {
   color: white;
   text-align: center;
   font-family: 'Courier New', monospace;
+  word-break: break-word;
+  line-height: 1.4;
+  padding: 0 0.75rem;
 }
 
 .capcha-input {
@@ -386,9 +389,19 @@ label {
 
 .capcha-input-row {
   display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  width: 100%;
+}
+
+.capcha-field-row {
+  display: flex;
   align-items: center;
   gap: 0.75rem;
-  flex-wrap: wrap;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  flex-wrap: nowrap;
 }
 
 .capcha-input-row label {
@@ -400,7 +413,8 @@ label {
 
 .capcha-res {
   flex: 1;
-  min-width: 80px;
+  min-width: 0;
+  width: 100%;
   padding: 0.75rem;
   background: rgba(15, 23, 42, 0.6);
   border: 2px solid rgba(255, 255, 255, 0.1);

@@ -103,27 +103,29 @@
           <div class="capcha">
             <div class="capcha-detail">
               <div class="capcha-item">
-                <span class="capcha-content">{{capcha.first_number}} {{capcha.operator}} ? = {{capcha.result_number}}</span>
+                <span class="capcha-content">{{ capcha.prompt }}</span>
               </div>
             </div>
             <div class="capcha-input">
               <div class="capcha-input-row">
-                <label for="capcha-res">Result:</label>
-                <input 
-                  type="number" 
-                  id="capcha-res" 
-                  name="capcha-res" 
-                  class="capcha-res" 
-                  #capchaInput 
-                  placeholder="?" 
-                  required>
-                <button class="refresh-capcha-btn" type="button" (click)="refreshCapcha()" title="Refresh">
-                  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M1 4V10H7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M23 20V14H17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M20.49 9C19.7969 7.30457 18.6327 5.8475 17.1339 4.79049C15.6351 3.73347 13.8572 3.11608 12 3.11608C10.1428 3.11608 8.36493 3.73347 6.86612 4.79049C5.3673 5.8475 4.20314 7.30457 3.51003 9H1M23 15C22.3069 16.6954 21.1427 18.1525 19.6439 19.2095C18.1451 20.2665 16.3672 20.8839 14.51 20.8839C12.6528 20.8839 10.8749 20.2665 9.37612 19.2095C7.8773 18.1525 6.71314 16.6954 6.02003 15H23Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
-                </button>
+                <label for="capcha-res">Your answer:</label>
+                <div class="capcha-field-row">
+                  <input 
+                    type="number" 
+                    id="capcha-res" 
+                    name="capcha-res" 
+                    class="capcha-res" 
+                    #capchaInput 
+                    placeholder="?" 
+                    required>
+                  <button class="refresh-capcha-btn" type="button" (click)="refreshCapcha()" title="Refresh">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M1 4V10H7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      <path d="M23 20V14H17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      <path d="M20.49 9C19.7969 7.30457 18.6327 5.8475 17.1339 4.79049C15.6351 3.73347 13.8572 3.11608 12 3.11608C10.1428 3.11608 8.36493 3.73347 6.86612 4.79049C5.3673 5.8475 4.20314 7.30457 3.51003 9H1M23 15C22.3069 16.6954 21.1427 18.1525 19.6439 19.2095C18.1451 20.2665 16.3672 20.8839 14.51 20.8839C12.6528 20.8839 10.8749 20.2665 9.37612 19.2095C7.8773 18.1525 6.71314 16.6954 6.02003 15H23Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </button>
+                </div>
               </div>
               @if(!is_valid_capcha) {
                 <span class="form-error capcha-break-row">Incorrect result</span>

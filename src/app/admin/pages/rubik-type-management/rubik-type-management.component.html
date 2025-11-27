@@ -1,5 +1,5 @@
-<section class="rubik-type-shell users-shell">
-  <div class="loading-overlay" *ngIf="isListLoading">
+<section class="rubik-type-shell">
+  <div class="loading-overlay" *ngIf="isLoading">
     <div class="loading-card">
       <div class="glow"></div>
       <div class="spinner"></div>
@@ -7,39 +7,39 @@
     </div>
   </div>
 
-  <div class="rubik-type-grid users-grid" [class.dimmed]="isListLoading">
-    <header class="users-hero">
+  <div class="rubik-type-grid" [class.dimmed]="isLoading">
+    <header class="rubik-type-hero">
       <div class="hero-intro">
         <div class="hero-badge">All Rubik Types</div>
         <h2>Rubik Type Management</h2>
         <p>
-          Manage rubik taxonomies with the same streamlined toolkit that powers user
-          and product administration.
+          Manage the taxonomy that powers every cube. Search, edit and create new rubik types with the same glassmorphism
+          UI used in user management.
         </p>
       </div>
       <div class="hero-actions">
-        <button type="button" class="action-btn primary" (click)="navigateToCreate()" [disabled]="isListLoading">
+        <button type="button" class="action-btn primary" (click)="navigateToCreate()" [disabled]="isLoading">
           <span class="action-icon">➕</span>
           Add Type
         </button>
-        <button type="button" class="refresh-btn" (click)="refreshTable()" [disabled]="isListLoading">
+        <button type="button" class="refresh-btn" (click)="refreshRubikTypes()" [disabled]="isLoading">
           <span class="refresh-icon" aria-hidden="true">↻</span>
           Refresh
         </button>
       </div>
     </header>
 
-    <div *ngIf="listError && !isListLoading" class="error-state glass">
+    <div *ngIf="error && !isLoading" class="error-state glass">
       <div class="error-icon">⚠️</div>
       <h3>Error Loading Rubik Types</h3>
-      <p>{{ listError }}</p>
-      <button type="button" class="refresh-btn" (click)="refreshTable()">
+      <p>{{ error }}</p>
+      <button type="button" class="refresh-btn" (click)="refreshRubikTypes()">
         <span class="refresh-icon" aria-hidden="true">↻</span>
         Retry
       </button>
     </div>
 
-    <div class="filters-section glass" *ngIf="!listError">
+    <div class="filters-section glass" *ngIf="!error">
       <div class="filters-grid">
         <div class="filter-group">
           <label class="filter-label">Search Rubik Types</label>
@@ -48,30 +48,19 @@
             <input
               type="text"
               class="search-input"
-              placeholder="Search by name or description..."
-              [(ngModel)]="filters.searchTerm"
+              placeholder="Search by type name or description..."
+              [(ngModel)]="searchTerm"
               (keyup.enter)="onSearch()"
-              (blur)="onSearch()"
-              [disabled]="isListLoading" />
-            <button type="button" class="search-btn" (click)="onSearch()" [disabled]="isListLoading">
+              (blur)="onSearch()" />
+            <button type="button" class="search-btn" (click)="onSearch()" [disabled]="isLoading">
               Search
             </button>
           </div>
         </div>
 
         <div class="filter-group">
-          <label class="filter-label">Sort by</label>
-          <select class="filter-select" [(ngModel)]="filters.sortBy" (change)="applyFilters()" [disabled]="isListLoading">
-            <option value="newest">Newest first</option>
-            <option value="oldest">Oldest first</option>
-            <option value="nameAsc">Name A → Z</option>
-            <option value="nameDesc">Name Z → A</option>
-          </select>
-        </div>
-
-        <div class="filter-group">
           <label class="filter-label">Items per Page</label>
-          <select class="filter-select" [(ngModel)]="pageSize" (change)="onPageSizeChange()" [disabled]="isListLoading">
+          <select class="filter-select" [(ngModel)]="pageSize" (change)="onPageSizeChange()">
             <option *ngFor="let size of pageSizeOptions" [value]="size">{{ size }}</option>
           </select>
         </div>
@@ -83,7 +72,7 @@
               type="button"
               class="column-select-trigger"
               (click)="toggleColumnDropdown($event)"
-              [disabled]="isListLoading">
+              [disabled]="isLoading">
               <span class="column-select-label">{{ selectedColumnsLabel }}</span>
               <span class="column-select-icon" aria-hidden="true">⌄</span>
             </button>
@@ -103,25 +92,13 @@
             </div>
           </div>
         </div>
-
-        <div class="filter-group quick-actions">
-          <label class="filter-label">Quick Actions</label>
-          <div class="filter-actions">
-            <button type="button" class="action-btn ghost" (click)="resetFilters()" [disabled]="isListLoading">
-              Clear filters
-            </button>
-            <button type="button" class="action-btn ghost" (click)="refreshTable()" [disabled]="isListLoading">
-              Sync data
-            </button>
-          </div>
-        </div>
       </div>
     </div>
 
-    <div class="stats-summary glass" *ngIf="pagination && !listError">
+    <div class="stats-summary glass" *ngIf="pagination && !error">
       <div class="stat-item">
         <span class="stat-label">Total Rubik Types</span>
-        <span class="stat-value">{{ pagination.totalItems | number }}</span>
+        <span class="stat-value">{{ pagination.totalRubikTypes | number }}</span>
       </div>
       <div class="stat-item">
         <span class="stat-label">Current Page</span>
@@ -129,72 +106,68 @@
       </div>
       <div class="stat-item">
         <span class="stat-label">Showing</span>
-        <span class="stat-value"> {{rubikTypes.length}} types</span>
+        <span class="stat-value">{{ rubikTypes.length }} types</span>
       </div>
     </div>
 
-    <div class="users-table-container" *ngIf="!listError">
-      <div *ngIf="rubikTypes.length === 0 && !isListLoading" class="empty-state glass">
+    <div class="rubik-types-table-container" *ngIf="!error">
+      <div *ngIf="rubikTypes.length === 0 && !isLoading" class="empty-state glass">
         <div class="empty-icon">🧱</div>
         <h3>No Rubik Types Found</h3>
-        <p>No results match your current search or filter selection.</p>
-        <button type="button" class="refresh-btn" (click)="resetFilters()">
-          Clear Filters
+        <p>No rubik types match your current search.</p>
+        <button type="button" class="refresh-btn" (click)="searchTerm = ''; onSearch()">
+          Clear Search
         </button>
       </div>
 
       <div *ngIf="rubikTypes.length > 0" class="table-wrapper glass">
-        <table class="users-table">
+        <table class="rubik-types-table">
           <thead>
             <tr>
-              <th *ngIf="columnVisibility.id">#</th>
+              <th *ngIf="columnVisibility.id">ID</th>
               <th *ngIf="columnVisibility.type">Rubik Type</th>
-              <th *ngIf="columnVisibility.description">Description</th>
+              <!-- <th *ngIf="columnVisibility.description">Description</th> -->
               <th *ngIf="columnVisibility.variation">Variations</th>
+              <th *ngIf="columnVisibility.created">Created</th>
               <th *ngIf="columnVisibility.updated">Updated</th>
               <th *ngIf="columnVisibility.actions">Actions</th>
             </tr>
           </thead>
           <tbody>
-            <tr
-              *ngFor="let rubikType of rubikTypes; let i = index; trackBy: trackByRubikType"
-              class="user-row">
+            <tr *ngFor="let rubikType of rubikTypes; let i = index" class="type-row">
               <td *ngIf="columnVisibility.id" class="id-cell" data-label="ID">
                 {{ getRowNumber(i) }}
               </td>
-              <td *ngIf="columnVisibility.type" class="user-cell" data-label="Rubik Type">
-                <div class="user-info">
-                  <div class="user-avatar-wrapper type-avatar">
-                    <span>{{ (rubikType.type_name || '?').slice(0, 1) }}</span>
+              <td *ngIf="columnVisibility.type" class="type-cell" data-label="Rubik Type">
+                <div class="type-info">
+                  <div class="type-avatar-wrapper">
+                    <div class="type-avatar">{{ (rubikType.type_name || '?').slice(0, 1).toUpperCase() }}</div>
                   </div>
                   <div class="type-meta">
-                    <span class="user-name">{{ rubikType.type_name || 'Unnamed type' }}</span>
-                    <span class="type-id">#{{ rubikType._id || rubikType.id || '—' }}</span>
+                    <span class="type-name">{{ rubikType.type_name || 'Unnamed type' }}</span>
+                    <!-- <span class="type-id">#{{ rubikType._id || rubikType.id || '—' }}</span> -->
                   </div>
                 </div>
               </td>
-              <td *ngIf="columnVisibility.description" class="description-cell" data-label="Description">
+              <!-- <td *ngIf="columnVisibility.description" class="description-cell" data-label="Description">
                 {{ truncateText(rubikType.description, 140) }}
+              </td> -->
+              <td *ngIf="columnVisibility.variation" class="variation-cell" data-label="Variations">
+                <span class="variation-pill">
+                  {{ normalizeVariationInput(rubikType.variation) ?? 0 }} variations
+                </span>
               </td>
-              <td *ngIf="columnVisibility.variation" class="role-cell" data-label="Variations">
-                <span class="count-pill">{{ getVariantCount(rubikType) }} variations</span>
+              <td *ngIf="columnVisibility.created" class="date-cell" data-label="Created">
+                {{ formatDate(rubikType.created_date || rubikType.created_at) }}
               </td>
               <td *ngIf="columnVisibility.updated" class="date-cell" data-label="Updated">
-                {{
-                  formatDate(
-                    rubikType.updated_date || rubikType.updated_at || rubikType.created_date || rubikType.created_at
-                  )
-                }}
+                {{ formatDate(rubikType.updated_date || rubikType.updated_at || rubikType.created_date || rubikType.created_at) }}
               </td>
               <td *ngIf="columnVisibility.actions" class="actions-cell" data-label="Actions">
                 <div class="action-buttons">
-                  <button type="button" class="action-btn secondary" (click)="inspectRubikType(rubikType)">
-                    <span class="action-icon">👁️</span>
-                    <span>Inspect</span>
-                  </button>
-                  <button type="button" class="action-btn secondary" (click)="openEditModal(rubikType)">
-                    <span class="action-icon">✏️</span>
-                    <span>Edit</span>
+                  <button type="button" class="action-btn danger" (click)="deleteRubikType(rubikType)">
+                    <span class="action-icon">🗑️</span>
+                    <span>Delete</span>
                   </button>
                 </div>
               </td>
@@ -204,18 +177,18 @@
       </div>
     </div>
 
-    <div class="pagination-container glass" *ngIf="pagination && !listError">
+    <div class="pagination-container glass" *ngIf="pagination && !error">
       <div class="pagination-info">
         <span>
           Showing page {{ pagination.currentPage }} of {{ pagination.totalPages }}
-          ({{ pagination.totalItems }} total types)
+          ({{ pagination.totalRubikTypes }} total types)
         </span>
       </div>
       <div class="pagination-controls">
         <button
           type="button"
           class="pagination-btn"
-          [disabled]="!pagination.hasPrevPage || isListLoading"
+          [disabled]="!pagination.hasPrevPage || isLoading"
           (click)="goToPage(currentPage - 1)">
           <span>←</span>
           Previous
@@ -228,7 +201,7 @@
             class="pagination-number"
             [class.active]="page === currentPage"
             [class.ellipsis]="page === -1"
-            [disabled]="page === -1 || isListLoading"
+            [disabled]="page === -1 || isLoading"
             (click)="page !== -1 && goToPage(page)">
             {{ page === -1 ? '...' : page }}
           </button>
@@ -237,7 +210,7 @@
         <button
           type="button"
           class="pagination-btn"
-          [disabled]="!pagination.hasNextPage || isListLoading"
+          [disabled]="!pagination.hasNextPage || isLoading"
           (click)="goToPage(currentPage + 1)">
           Next
           <span>→</span>
@@ -246,204 +219,6 @@
     </div>
   </div>
 
-  <aside class="detail-drawer" [class.open]="isDetailDrawerOpen">
-    <div class="drawer-header">
-      <div>
-        <p class="eyebrow">Rubik type insight</p>
-        <h3>{{ rubikType?.type_name || 'Select a rubik type' }}</h3>
-        <p class="drawer-subtitle" *ngIf="rubikType">{{ rubikType.description || 'No description provided.' }}</p>
-      </div>
-      <div class="drawer-actions">
-        <button type="button" class="btn ghost" (click)="closeDetailDrawer()">Close</button>
-        <button
-          type="button"
-          class="btn secondary"
-          (click)="refreshCurrent()"
-          [disabled]="!currentRubikTypeId || isDetailLoading">
-          <span *ngIf="!isDetailLoading">Refresh</span>
-          <span *ngIf="isDetailLoading">Refreshing…</span>
-        </button>
-      </div>
-    </div>
-    <div class="drawer-meta" *ngIf="rubikType && lastFetchedAt">
-      <span class="meta-pill">Last synced {{ lastFetchedAt | date: 'short' }}</span>
-      <span class="meta-pill">Variation: {{ getVariantCount(rubikType) }}</span>
-      <span class="meta-pill">#{{ rubikType._id || rubikType.id }}</span>
-    </div>
-
-    <div class="drawer-body">
-      <section class="state-card muted" *ngIf="isDetailLoading">
-        <div class="loader"></div>
-        <p>Loading rubik type…</p>
-      </section>
-
-      <section class="state-card error" *ngIf="!isDetailLoading && detailError">
-        <div>
-          <h3>Unable to load rubik type</h3>
-          <p>{{ detailError }}</p>
-        </div>
-      </section>
-
-      <section class="tab-shell glass" *ngIf="rubikType && !isDetailLoading">
-        <nav class="tab-bar" aria-label="Rubik type detail tabs">
-          <button
-            type="button"
-            class="tab-btn"
-            *ngFor="let tab of tabs"
-            [class.active]="tab.id === activeTab"
-            (click)="setActiveTab(tab.id)">
-            <span class="tab-label">{{ tab.label }}</span>
-            <span class="tab-desc">{{ tab.description }}</span>
-          </button>
-        </nav>
-
-        <div class="tab-panel" *ngIf="activeTab === 'overview'">
-          <div class="overview-grid">
-            <article class="highlight-card">
-              <p class="eyebrow">Type name</p>
-              <h2>{{ rubikType.type_name }}</h2>
-              <p>{{ rubikType.description || 'No description provided.' }}</p>
-            </article>
-
-            <article class="highlight-card">
-              <p class="eyebrow">Lifecycle</p>
-              <div class="meta-grid">
-                <div>
-                  <span>Created</span>
-                  <strong>{{ formatDateTime(rubikType.created_date || rubikType.created_at) }}</strong>
-                </div>
-                <div>
-                  <span>Updated</span>
-                  <strong>{{ formatDateTime(rubikType.updated_date || rubikType.updated_at) }}</strong>
-                </div>
-                <div>
-                  <span>Variations</span>
-                  <strong>{{ getVariantCount(rubikType) }}</strong>
-                </div>
-              </div>
-            </article>
-          </div>
-
-          <article class="variants-card" *ngIf="hasVariants; else variantEmpty">
-            <div class="variants-head">
-              <div>
-                <p class="eyebrow">Variants</p>
-                <h3>{{ variantList.length }} available</h3>
-              </div>
-            </div>
-            <div class="variant-list">
-              <div class="variant-item" *ngFor="let variant of variantList; let idx = index">
-                <div class="variant-icon">{{ idx + 1 }}</div>
-                <div>
-                  <strong>{{ variant.name || 'Variant ' + (idx + 1) }}</strong>
-                  <p>{{ variant.description || 'No description' }}</p>
-                  <small *ngIf="variant.turn_metric">Turns: {{ variant.turn_metric }}</small>
-                </div>
-              </div>
-            </div>
-          </article>
-          <ng-template #variantEmpty>
-            <div class="state-card muted">
-              <p>No variants linked to this rubik type.</p>
-            </div>
-          </ng-template>
-        </div>
-
-        <div class="tab-panel" *ngIf="activeTab === 'attributes'">
-          <div class="attributes-grid" *ngIf="attributeEntries.length; else noAttributes">
-            <div class="attribute-card" *ngFor="let attribute of attributeEntries">
-              <span class="attribute-key">{{ attribute.key | titlecase }}</span>
-              <code class="attribute-value">{{ formatAttributeValue(attribute.value) }}</code>
-            </div>
-          </div>
-          <ng-template #noAttributes>
-            <div class="state-card muted">
-              <p>No additional attributes were returned for this rubik type.</p>
-            </div>
-          </ng-template>
-        </div>
-
-        <div class="tab-panel" *ngIf="activeTab === 'linkedProducts'">
-          <div *ngIf="hasLinkedProducts; else noLinkedProducts" class="products-grid">
-            <article class="product-card" *ngFor="let product of linkedProducts">
-              <div class="product-avatar">
-                <img
-                  [src]="product.avatar || 'https://gw.alipayobjects.com/zos/rmsportal/BiazfanxmamNRoxxVxka.png'"
-                  [alt]="product.name || 'Product avatar'"
-                  (error)="setFallbackImage($event)" />
-              </div>
-              <div class="product-body">
-                <h4>{{ product.name || 'Unnamed product' }}</h4>
-                <p class="product-meta">
-                  <span>ID: {{ product._id || product.id || '—' }}</span>
-                  <span *ngIf="product.category_name">Category: {{ product.category_name }}</span>
-                </p>
-                <span class="product-status" [class.active]="product.status === 'active'">
-                  {{ product.status ? (product.status | titlecase) : 'Unknown status' }}
-                </span>
-              </div>
-            </article>
-          </div>
-          <ng-template #noLinkedProducts>
-            <div class="state-card muted">
-              <p>No products currently reference this rubik type.</p>
-            </div>
-          </ng-template>
-        </div>
-      </section>
-    </div>
-  </aside>
-
-  <div class="modal-backdrop" *ngIf="isModalOpen">
-    <div class="modal-card glass">
-      <header class="modal-header">
-        <div>
-          <p class="eyebrow">Edit rubik type</p>
-          <h3>Update rubik type</h3>
-        </div>
-        <button type="button" class="icon-btn" (click)="closeModal()">×</button>
-      </header>
-
-      <form class="modal-form" (ngSubmit)="submitRubikTypeForm(rubikTypeFormRef)" #rubikTypeFormRef="ngForm">
-        <label class="form-label">Type name <span class="required">*</span></label>
-        <input
-          type="text"
-          name="typeName"
-          [(ngModel)]="rubikTypeForm.type_name"
-          required
-          placeholder="E.g. 3x3 Classic"
-          [disabled]="isModalSubmitting" />
-
-        <label class="form-label">Description</label>
-        <textarea
-          name="description"
-          [(ngModel)]="rubikTypeForm.description"
-          rows="3"
-          placeholder="Short summary"
-          [disabled]="isModalSubmitting"></textarea>
-
-        <label class="form-label">Variation <span class="required">*</span></label>
-        <input
-          type="number"
-          name="variation"
-          min="0"
-          step="1"
-          [(ngModel)]="rubikTypeForm.variation"
-          required
-          placeholder="Number of variations"
-          [disabled]="isModalSubmitting" />
-
-        <p class="modal-error" *ngIf="modalError">{{ modalError }}</p>
-
-        <div class="modal-actions">
-          <button type="button" class="btn ghost" (click)="closeModal()" [disabled]="isModalSubmitting">Cancel</button>
-          <button type="submit" class="btn primary" [disabled]="isModalSubmitting">
-            <span *ngIf="!isModalSubmitting">Save changes</span>
-            <span *ngIf="isModalSubmitting">Saving…</span>
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
 </section>
+
 
