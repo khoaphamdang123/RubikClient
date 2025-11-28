@@ -402,18 +402,29 @@ label {
 
 .capcha-input-row {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 0.4rem;
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
+}
+
+.capcha-field-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
+  flex-wrap: wrap;
 }
 
 .capcha-input-row label {
   font-size: 0.875rem;
   margin-bottom: 0;
   white-space: nowrap;
+  color: #374151;
 }
 
 .capcha-break-row {
@@ -432,6 +443,7 @@ label {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 
   &:hover {
     background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));

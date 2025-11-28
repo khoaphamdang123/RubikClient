@@ -28,8 +28,13 @@ import { CategoryEditComponent } from './admin/pages/category-edit/category-edit
 import { RubikSolvesComponent } from './admin/pages/rubik-solves/rubik-solves.component';
 import { RubikTypeManagementComponent } from './admin/pages/rubik-type-management/rubik-type-management.component';
 import { RubikTypeCreateComponent } from './admin/pages/rubik-type-create/rubik-type-create.component';
+import { FeedbackComponent } from './admin/pages/feedback/feedback.component';
+import { FeedbackPageComponent } from './pages/feedback/feedback.component';
 import { AdminLoginComponent } from './admin/pages/admin-login/admin-login.component';
 import { adminGuard } from './admin/guards/admin.guard';
+import { FeedbackCategoryManagementComponent } from './admin/pages/feedback-category-management/feedback-category-management.component';
+import { FeedbackCategoryCreateComponent } from './admin/pages/feedback-category-create/feedback-category-create.component';
+import { FeedbackEditComponent } from './admin/pages/feedback-edit/feedback-edit.component';
 
 export const routes: Routes = [
     {path:'',redirectTo:'/products',pathMatch:'full'},
@@ -38,6 +43,7 @@ export const routes: Routes = [
     {path:"about",component:AboutComponent},
     {path:'products',component:ProductsComponent,children:[{path:'',component:ItemsComponent}]},
     {path:'product/:slug',component:ProductDetailComponent},
+    {path:'feedback',component:FeedbackPageComponent},
     {path:'product-details/:id',redirectTo:'/product/:id',pathMatch:'full'}, // Legacy redirect
     {path:'solve',component:SolveComponent},
     {path:'rubik-solve/:name',component:RubikSolveComponent},
@@ -67,7 +73,11 @@ export const routes: Routes = [
             {path:'rubik-solves',component:RubikSolvesComponent},
             {path:'rubik-types/create',component:RubikTypeCreateComponent},
             {path:'rubik-types',component:RubikTypeManagementComponent},
-            {path:'rubik-types/:id',component:RubikTypeManagementComponent}
+            {path:'rubik-types/:id',component:RubikTypeManagementComponent},
+            {path:'feedback',component:FeedbackComponent},
+            {path:'feedback/:id/edit',component:FeedbackEditComponent},
+            {path:'feedback-categories',component:FeedbackCategoryManagementComponent},
+            {path:'feedback-categories/create',component:FeedbackCategoryCreateComponent}
         ]
     },
     {path:"**",component:NotFoundComponent}

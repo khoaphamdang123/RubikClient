@@ -37,10 +37,12 @@
           <div class="capcha-input">
             <div class="capcha-input-row">
               <label for="capcha-res">Your answer:</label>
-              <input type="number" id="capcha-res" name="capcha-res" class="capcha-res" #capchaInput required>
-              <button class="refresh-capcha-btn" type="button" (click)="refreshCapcha()">
-                <img src="assets/images/refresh.png">
-              </button>
+              <div class="capcha-field-row">
+                <input type="number" id="capcha-res" name="capcha-res" class="capcha-res" #capchaInput required placeholder="?">
+                <button class="refresh-capcha-btn" type="button" (click)="refreshCapcha()" title="Change problem">
+                  <img src="assets/images/refresh.png" alt="Refresh captcha">
+                </button>
+              </div>
             </div>
             @if(!is_valid_capcha){
               <span class="form-error capcha-break-row"><p>Your answer is incorrect</p></span>

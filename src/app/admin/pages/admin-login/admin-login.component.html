@@ -127,7 +127,8 @@
                   </button>
                 </div>
               </div>
-              @if(!is_valid_capcha) {
+              @if(!is_valid_capcha) 
+              {
                 <span class="form-error capcha-break-row">Incorrect result</span>
               }
             </div>
@@ -140,10 +141,12 @@
             @if(isLoading) {
               <span class="loading-spinner"></span>
               <span>Signing in...</span>
-            } @else if(isLocked) {
-              <span>Locked ({{standard_remaing_time}})</span>
             } @else {
-              <span>Sign In</span>
+              @if(isLocked) {
+                <span>Locked ({{standard_remaing_time}})</span>
+              } @else {
+                <span>Sign In</span>
+              }
             }
           </button>
         </form>

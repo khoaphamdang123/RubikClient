@@ -1,0 +1,162 @@
+<section class="feedback-shell">
+  <div class="feedback-grid">
+    <!-- Hero / Overview -->
+    <header class="feedback-hero glass">
+      <div class="hero-text">
+        <p class="eyebrow">We’re listening</p>
+        <h2>Share your Rubik experience</h2>
+        <p class="subtitle">
+          Tell us what delights you, what slows you down, and what you would love to see next.
+          Every insight makes the app smoother for the next solve session.
+        </p>
+        <div class="hero-tags">
+          <span>Product journey</span>
+          <span>Bug reports</span>
+          <span>Feature ideas</span>
+          <span>Learning experience</span>
+        </div>
+      </div>
+      <div class="hero-card">
+        <div class="hero-stat">
+          <span class="stat-value">24h</span>
+          <span class="stat-label">average reply time</span>
+        </div>
+        <div class="hero-stat">
+          <span class="stat-value">1.2k+</span>
+          <span class="stat-label">community voices</span>
+        </div>
+        <div class="hero-note">
+          <p>
+            Signed-in users will have their submissions linked automatically so we can follow up quickly.            
+          </p>
+          <div class="status-pill" [class.active]="isUserLoggedIn">
+            <span class="status-icon">{{ isUserLoggedIn ? '✅' : '⚠️' }}</span>
+            {{ isUserLoggedIn ? 'Signed in' : 'Sign in for quicker follow-ups' }}
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="feedback-sections">
+      <!-- Quick guidance -->
+      <section class="feedback-guides glass">
+        <h3>Need inspiration?</h3>
+        <div class="guide-grid">
+          <article>
+            <h4>Moments of friction</h4>
+            <p>Tell us where you hesitate, tap twice, or get confused. Micro-frustrations add up.</p>
+          </article>
+          <article>
+            <h4>Moments of delight</h4>
+            <p>Which interactions or visuals feel magical? We double down on what you love.</p>
+          </article>
+          <article>
+            <h4>Big ideas</h4>
+            <p>Dream loud: new cube types, tracking features, social modes—surprise us.</p>
+          </article>
+        </div>
+      </section>
+
+      <!-- Feedback Form -->
+      <section class="feedback-form glass">
+        <div class="form-header">
+          <div>
+            <p class="eyebrow">Submit feedback</p>
+            <h3>Drop us a note</h3>
+            <p class="subtitle">
+              We read every entry and route it to the right builder. Be as detailed as you like.
+            </p>
+          </div>
+          <div class="last-submission" *ngIf="lastSubmittedAt">
+            Last submitted            
+            <strong>{{ lastSubmittedAt | date: 'medium' }}</strong>
+          </div>
+        </div>
+
+        <form [formGroup]="feedbackForm" (ngSubmit)="submitFeedback()" novalidate>
+          <div class="form-grid">
+            <label class="form-field" [class.focused]="focusStates.subject">
+              <span>Subject <sup>*</sup></span>
+              <input
+                type="text"
+                formControlName="subject"
+                placeholder="Give your feedback a short title"
+                (focus)="setFocus('subject', true)"
+                (blur)="setFocus('subject', false)">
+              <small *ngIf="feedbackForm.get('subject')?.invalid && feedbackForm.get('subject')?.touched">
+                {{ feedbackForm.get('subject')?.errors?.['required'] ? 'Subject is required' : 'A bit longer, please' }}
+              </small>
+            </label>
+
+          <label class="form-field">
+            <span>Category</span>
+            <select
+              formControlName="category"
+              [disabled]="isCategoryLoading || !categoryOptions.length"
+            >
+              <option *ngIf="isCategoryLoading" [ngValue]="null" disabled>Loading categories...</option>
+              <option *ngFor="let option of categoryOptions" [ngValue]="option.value">
+                {{ option.label }}
+              </option>
+            </select>
+            <small *ngIf="categoryLoadError">{{ categoryLoadError }}</small>
+            <small *ngIf="!isCategoryLoading && !categoryOptions.length && !categoryLoadError">
+              No feedback categories available right now.
+            </small>
+          </label>
+
+            <label class="form-field span-2">
+              <span>Tell us everything <sup>*</sup></span>
+              <textarea
+                formControlName="message"
+                rows="6"
+                placeholder="Describe what happened, what you expected, and any context that helps."
+                (focus)="setFocus('message', true)"
+                (blur)="setFocus('message', false)"></textarea>
+              <div class="field-foot">
+                <small *ngIf="feedbackForm.get('message')?.invalid && feedbackForm.get('message')?.touched">
+                  {{ feedbackForm.get('message')?.errors?.['required'] ? 'Feedback cannot be empty' : 'More detail helps us act faster' }}
+                </small>
+                <span [class.warning]="remainingCharacters < 100">{{ remainingCharacters }} characters left</span>
+              </div>
+            </label>
+
+            <div class="rating-field">
+              <span>Experience rating</span>
+              <div class="rating-inputs">
+                <label *ngFor="let label of ratingLabels; let i = index" [class.active]="feedbackForm.get('rating')?.value === i + 1">
+                  <input type="radio" [value]="i + 1" formControlName="rating">
+                  <span class="dot"></span>
+                  <span class="label-text">{{ label }}</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- <label class="checkbox-field">
+              <input type="checkbox" formControlName="allowFollowUp">
+              <span>It's ok to reach out if the team needs more detail.</span>
+            </label> -->
+          </div>
+
+          <div class="form-actions">
+            <div class="status-copy">
+              <p *ngIf="submitErrorMessage" class="status-error">{{ submitErrorMessage }}</p>
+              <p *ngIf="submitSuccessMessage" class="status-success">{{ submitSuccessMessage }}</p>
+              <p *ngIf="!submitErrorMessage && !submitSuccessMessage">
+                We usually reply within one business day.              
+              </p>
+            </div>
+            <button type="submit" class="primary-btn" [disabled]="isSubmitting">
+              {{ isSubmitting ? 'Sending…' : 'Send feedback' }}
+            </button>
+          </div>
+        </form>
+      </section>
+    </div>
+  </div>
+</section>
+
+
+
+
+

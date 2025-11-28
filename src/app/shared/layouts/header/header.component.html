@@ -46,6 +46,16 @@
           </a>
         </li>
         <li class="nav-item">
+          <a href="/feedback" 
+             (click)="closeMobileMenu()" 
+             class="nav-link"
+             routerLink="/feedback"
+             routerLinkActive="active"
+             [routerLinkActiveOptions]="{exact: false}">
+            <span class="nav-text">FEEDBACK</span>
+          </a>
+        </li>
+        <li class="nav-item">
           <a href="/solve" 
              (click)="closeMobileMenu()" 
              class="nav-link"

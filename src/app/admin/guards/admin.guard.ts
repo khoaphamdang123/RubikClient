@@ -19,11 +19,11 @@ export const adminGuard: CanActivateFn = (route, state) => {
       const user = JSON.parse(accountData);
       if (user.role_id === 1 || user.role === 'Admin') 
       {
-        return true;
+        return true;        
       }
     }
   } catch (error) {
-    console.error('Error parsing user account:', error);
+    console.error('Error parsing user account:', error);      
   }
 
   // Not admin, redirect to client

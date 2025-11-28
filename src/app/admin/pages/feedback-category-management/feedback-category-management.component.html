@@ -1,0 +1,220 @@
+<section class="feedback-category-shell">
+  <div class="loading-overlay" *ngIf="isLoading">
+    <div class="loading-card">
+      <div class="glow"></div>
+      <div class="spinner"></div>
+      <p>Loading feedback categories…</p>
+    </div>
+  </div>
+
+  <div class="feedback-category-grid" [class.dimmed]="isLoading">
+    <header class="feedback-category-hero">
+      <div class="hero-intro">
+        <div class="hero-badge">Feedback Taxonomy</div>
+        <h2>Feedback Category Management</h2>
+        <p>
+          Keep your feedback hub organized with curated categories. Search, filter, and analyze the segments that make
+          customer signals easier to digest—mirroring the same glassmorphism table experience as user management.
+        </p>
+      </div>
+      <div class="hero-actions">
+        <button type="button" class="action-btn primary" (click)="navigateToCreate()" [disabled]="isLoading">
+          <span class="action-icon">➕</span>
+          Add Feedback Category
+        </button>
+        <button type="button" class="refresh-btn" (click)="refreshCategories()" [disabled]="isLoading">
+          <span class="refresh-icon" aria-hidden="true">↻</span>
+          Refresh
+        </button>
+      </div>
+    </header>
+
+    <div *ngIf="error && !isLoading" class="error-state glass">
+      <div class="error-icon">⚠️</div>
+      <h3>Error Loading Feedback Categories</h3>
+      <p>{{ error }}</p>
+      <button type="button" class="refresh-btn" (click)="refreshCategories()">
+        <span class="refresh-icon" aria-hidden="true">↻</span>
+        Retry
+      </button>
+    </div>
+
+    <div class="filters-section glass" *ngIf="!error">
+      <div class="filters-grid">
+        <div class="filter-group">
+          <label class="filter-label">Search Categories</label>
+          <div class="search-input-wrapper">
+            <span class="search-icon">🔍</span>
+            <input
+              type="text"
+              class="search-input"
+              placeholder="Search by category name…"
+              [(ngModel)]="searchTerm"
+              (keyup.enter)="onSearch()"
+              (blur)="onSearch()" />
+            <button type="button" class="search-btn" (click)="onSearch()" [disabled]="isLoading">
+              Search
+            </button>
+            <button
+              type="button"
+              class="search-btn secondary"
+              (click)="clearSearch()"
+              [disabled]="isLoading || !searchTerm.trim()">
+              Clear
+            </button>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <label class="filter-label">Items per Page</label>
+          <select class="filter-select" [(ngModel)]="pageSize" (change)="onPageSizeChange()">
+            <option *ngFor="let size of pageSizeOptions" [value]="size">{{ size }}</option>
+          </select>
+        </div>
+
+        <div class="filter-group column-filter">
+          <label class="filter-label">Show/Hide Columns</label>
+          <div class="column-select" [class.open]="isColumnDropdownOpen">
+            <button
+              type="button"
+              class="column-select-trigger"
+              (click)="toggleColumnDropdown($event)"
+              [disabled]="isLoading">
+              <span class="column-select-label">{{ selectedColumnsLabel }}</span>
+              <span class="column-select-icon" aria-hidden="true">⌄</span>
+            </button>
+
+            <div class="column-select-dropdown" *ngIf="isColumnDropdownOpen" (click)="$event.stopPropagation()">
+              <label class="column-option" *ngFor="let column of columns">
+                <input
+                  type="checkbox"
+                  [checked]="columnVisibility[column.value]"
+                  (change)="onColumnOptionToggle(column.value, $any($event.target).checked)" />
+                <span>{{ column.label }}</span>
+              </label>
+
+              <button type="button" class="column-select-reset" (click)="resetColumnSelection()">
+                Reset to defaults
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stats-summary glass" *ngIf="pagination && !error">
+      <div class="stat-item">
+        <span class="stat-label">Total Categories</span>
+        <span class="stat-value">{{ pagination.totalCategories | number }}</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Current Page</span>
+        <span class="stat-value">{{ pagination.currentPage }} / {{ pagination.totalPages }}</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Showing</span>
+        <span class="stat-value">{{ categories.length }} categories</span>
+      </div>
+    </div>
+
+    <div class="feedback-categories-table-container" *ngIf="!error">
+      <div *ngIf="categories.length === 0 && !isLoading" class="empty-state glass">
+        <div class="empty-icon">📂</div>
+        <h3>No Feedback Categories Found</h3>
+        <p>No categories match your current search.</p>
+        <button type="button" class="refresh-btn" (click)="clearSearch()">
+          Clear Search
+        </button>
+      </div>
+
+      <div *ngIf="categories.length > 0" class="table-wrapper glass">
+        <table class="feedback-categories-table">
+          <thead>
+            <tr>
+              <th *ngIf="columnVisibility.id">ID</th>
+              <th *ngIf="columnVisibility.category">Category</th>
+              <th *ngIf="columnVisibility.created">Created</th>
+              <th *ngIf="columnVisibility.updated">Updated</th>
+              <th *ngIf="columnVisibility.actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let category of categories; let i = index" class="type-row">
+              <td *ngIf="columnVisibility.id" class="id-cell" data-label="ID">
+                {{ getRowNumber(i) }}
+              </td>
+              <td *ngIf="columnVisibility.category" class="type-cell" data-label="Category">
+                <div class="type-info">
+                  <div class="type-avatar-wrapper">
+                    <div class="type-avatar">{{ (category.category_name || '?').slice(0, 1).toUpperCase() }}</div>
+                  </div>
+                  <div class="type-meta">
+                    <span class="type-name">{{ category.category_name || 'Unnamed category' }}</span>
+                    <span class="type-id">#{{ category._id || category.id || '—' }}</span>
+                  </div>
+                </div>
+              </td>
+              <td *ngIf="columnVisibility.created" class="date-cell" data-label="Created">
+                {{ formatDate(category.created_date) }}
+              </td>
+              <td *ngIf="columnVisibility.updated" class="date-cell" data-label="Updated">
+                {{ formatDate(category.updated_date || category.created_date) }}
+              </td>
+              <td *ngIf="columnVisibility.actions" class="actions-cell" data-label="Actions">
+                <div class="action-buttons">
+                  <button type="button" class="action-btn secondary" (click)="viewFeedbackForCategory(category)">
+                    <span class="action-icon">👁️</span>
+                    <span>View Feedback</span>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="pagination-container glass" *ngIf="pagination && !error">
+      <div class="pagination-info">
+        <span>
+          Showing page {{ pagination.currentPage }} of {{ pagination.totalPages }}
+          ({{ pagination.totalCategories }} total categories)
+        </span>
+      </div>
+      <div class="pagination-controls">
+        <button
+          type="button"
+          class="pagination-btn"
+          [disabled]="!pagination.hasPrevPage || isLoading"
+          (click)="goToPage(currentPage - 1)">
+          <span>←</span>
+          Previous
+        </button>
+
+        <div class="pagination-numbers">
+          <button
+            *ngFor="let page of getPageNumbers()"
+            type="button"
+            class="pagination-number"
+            [class.active]="page === currentPage"
+            [class.ellipsis]="page === -1"
+            [disabled]="page === -1 || isLoading"
+            (click)="page !== -1 && goToPage(page)">
+            {{ page === -1 ? '...' : page }}
+          </button>
+        </div>
+
+        <button
+          type="button"
+          class="pagination-btn"
+          [disabled]="!pagination.hasNextPage || isLoading"
+          (click)="goToPage(currentPage + 1)">
+          Next
+          <span>→</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+

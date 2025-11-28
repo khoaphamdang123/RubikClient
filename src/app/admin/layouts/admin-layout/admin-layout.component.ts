@@ -57,6 +57,18 @@ export class AdminLayoutComponent implements OnInit, OnDestroy {
       icon: '🧱',
       route: '/admin/rubik-types',
       active: false
+    },
+    {
+      label: 'Feedback',
+      icon: '💬',
+      route: '/admin/feedback',
+      active: false
+    },
+    {
+      label: 'Feedback Categories',
+      icon: '🗂️',
+      route: '/admin/feedback-categories',
+      active: false
     }
   ];
 

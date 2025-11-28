@@ -1,0 +1,68 @@
+<section class="category-create-shell">
+  <div class="create-grid">
+    <header class="page-hero glass">
+      <div class="hero-content">
+        <div class="hero-badge">Feedback Taxonomy</div>
+        <h1>Add a New Feedback Category</h1>
+        <p>Give customer signals a proper home. Create a dedicated category so your team can triage feedback faster.</p>
+      </div>
+      <div class="hero-actions">
+        <button type="button" class="ghost-btn" (click)="navigateBack()">
+          ← Back to Categories
+        </button>
+      </div>
+    </header>
+
+    <div class="content-grid">
+      <article class="info-card glass">
+        <h2>Why categories matter</h2>
+        <ul>
+          <li>Group related feature requests, bugs, and kudos.</li>
+          <li>Route submissions to the right owner instantly.</li>
+          <li>Spot emerging trends at a glance.</li>
+        </ul>
+        <p class="tip-text">
+          Tip: keep names short and action-oriented (e.g. “Checkout Issues”, “AI Suggestions”, “UI Polish”).
+        </p>
+      </article>
+
+      <form class="create-form glass" [formGroup]="categoryForm" (ngSubmit)="submitCategory()">
+        <div class="form-field">
+          <label for="category-name">Category Name <span class="required">*</span></label>
+          <input
+            id="category-name"
+            type="text"
+            formControlName="category_name"
+            placeholder="e.g. Pro Feature Requests"
+            [class.invalid]="controlInvalid('category_name')"
+            [disabled]="isSubmitting" />
+          <small class="field-hint">3-60 characters. Keep it memorable.</small>
+          <div class="field-error" *ngIf="controlInvalid('category_name')">
+            {{ controlErrorMessage('category_name') }}
+          </div>
+        </div>
+
+        <div class="form-alerts">
+          <div class="form-alert error" *ngIf="submitError">
+            {{ submitError }}
+          </div>
+          <div class="form-alert success" *ngIf="submitSuccess">
+            {{ submitSuccess }}
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="ghost-btn" (click)="navigateBack()" [disabled]="isSubmitting">
+            Cancel
+          </button>
+          <button type="submit" class="primary-btn" [disabled]="isSubmitting">
+            <span *ngIf="!isSubmitting">Create Category</span>
+            <span *ngIf="isSubmitting">Creating…</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+
